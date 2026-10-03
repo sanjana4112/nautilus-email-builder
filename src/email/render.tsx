@@ -1,9 +1,9 @@
 import type { Data, PuckContext } from "@puckeditor/core";
 import { Body, Container, Html, render } from "@react-email/components";
-import { blocksConfig, type BlockProps } from "@/blocks";
+import { blocksConfig, type BlockProps, type EmailRootProps } from "@/blocks";
 import { theme } from "./theme";
 
-export type EmailData = Data<BlockProps>;
+export type EmailData = Data<BlockProps, EmailRootProps>;
 
 // The editor-only info Puck normally hands each block. Outside the editor
 // there is nothing to drag or drop into, so it is all empty.

@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { renderEmailHtml, type EmailData } from "@/email/render";
 import { resend } from "@/lib/resend";
 
-// Fixed for this first slice; the send panel will let users type these.
-const SUBJECT = "Test email from the builder";
-const TO = process.env.RESEND_TO_EMAIL ?? "";
+// One address only: no spaces, commas, or second "@".
+const SINGLE_EMAIL = /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/;
 
 // Light shape check only: confirms this looks like Puck data before rendering.
 function isEmailData(value: unknown): value is EmailData {
@@ -13,32 +12,38 @@ function isEmailData(value: unknown): value is EmailData {
   return Array.isArray(content) && typeof root === "object" && root !== null;
 }
 
+function badRequest(error: string) {
+  return NextResponse.json({ error }, { status: 400 });
+}
+
 export async function POST(request: Request) {
-  let body: unknown;
+  let body: { to?: unknown; data?: unknown };
   try {
-    body = await request.json();
+    body = (await request.json()) ?? {}; // `?? {}` covers a body of just `null`
   } catch {
-    return NextResponse.json({ error: "Request body must be JSON." }, { status: 400 });
+    return badRequest("Request body must be JSON.");
   }
 
-  if (!isEmailData(body)) {
-    return NextResponse.json({ error: "Request body is not a valid email design." }, { status: 400 });
+  const { to, data } = body;
+  if (typeof to !== "string" || !SINGLE_EMAIL.test(to.trim())) {
+    return badRequest("Enter one valid email address.");
   }
-  if (body.content.length === 0) {
-    return NextResponse.json({ error: "Add at least one block before sending." }, { status: 400 });
-  }
+  if (!isEmailData(data)) return badRequest("Request body is not a valid email design.");
 
-  const html = await renderEmailHtml(body);
-  const { data, error } = await resend.emails.send({
+  const subject = data.root.props?.subject?.trim();
+  if (!subject) return badRequest("Add a subject first.");
+  if (data.content.length === 0) return badRequest("Add at least one block before sending.");
+
+  const { data: sent, error } = await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
-    to: TO,
-    subject: SUBJECT,
-    html,
+    to: to.trim(),
+    subject,
+    html: await renderEmailHtml(data),
   });
 
   if (error) {
     // 502: our server is fine, but the email service refused or failed.
     return NextResponse.json({ error: error.message }, { status: 502 });
   }
-  return NextResponse.json({ id: data.id });
+  return NextResponse.json({ id: sent.id });
 }
