@@ -15,8 +15,10 @@ async function sendEmail(data: EmailData) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    const result: { id?: string; error?: string } = await response.json();
-    alert(response.ok ? "Email sent!" : `Could not send: ${result.error ?? "unknown error"}`);
+    if (response.ok) return alert("Email sent!");
+    // A crashed server replies with an HTML error page, not JSON, so parsing can fail.
+    const result: { error?: string } | null = await response.json().catch(() => null);
+    alert(`Could not send: ${result?.error ?? `server error (${response.status})`}`);
   } catch {
     alert("Could not reach the server. Check that it is running.");
   }
