@@ -6,7 +6,7 @@ vi.mock("@/lib/resend", () => ({ resend: { emails: { send } } }));
 
 const { POST } = await import("./route");
 
-const heading = { type: "Heading", props: { id: "h1", text: "Hi", color: "#000" } };
+const heading = { type: "Heading", props: { id: "h1", text: "Hi", textStyle: "heading1" } };
 const validData = { content: [heading], root: { props: { title: "Draft", subject: "Hello" } } };
 
 function post(body: unknown) {

@@ -1,33 +1,36 @@
 import type { Data, PuckContext } from "@puckeditor/core";
-import { Body, Container, Html, render } from "@react-email/components";
+import { Body, Html, render } from "@react-email/components";
 import { blocksConfig, type BlockProps, type EmailRootProps } from "@/blocks";
-import { theme } from "./theme";
+import { EmailFrame } from "./frame";
+import { resolveStyle } from "./theme";
 
 export type EmailData = Data<BlockProps, EmailRootProps>;
-
-// The editor-only info Puck normally hands each block. Outside the editor
-// there is nothing to drag or drop into, so it is all empty.
-const notEditing: PuckContext = {
-  renderDropZone: () => null,
-  metadata: {},
-  isEditing: false,
-  dragRef: null,
-};
 
 // Turns the editor's saved design into the HTML string an inbox receives.
 // We call each block's render ourselves instead of using Puck's <Render>,
 // because Puck's version uses React hooks that crash inside React Email's
 // render on the server.
 export async function renderEmailHtml(data: EmailData): Promise<string> {
+  const style = resolveStyle(data.root.props?.style);
+
+  // The editor-only info Puck normally hands each block. Outside the editor
+  // there is nothing to drag or drop into; metadata carries the Style tab.
+  const puck: PuckContext = {
+    renderDropZone: () => null,
+    metadata: { style },
+    isEditing: false,
+    dragRef: null,
+  };
+
   return render(
     <Html lang="en">
-      <Body style={{ backgroundColor: theme.colors.background, fontFamily: theme.fonts.body }}>
-        <Container>
+      <Body style={{ backgroundColor: style.background, margin: 0 }}>
+        <EmailFrame style={style}>
           {data.content.map(({ type, props }) => {
             const Block = blocksConfig.components[type]?.render;
-            return Block ? <Block key={props.id} {...props} puck={notEditing} /> : null;
+            return Block ? <Block key={props.id} {...props} puck={puck} /> : null;
           })}
-        </Container>
+        </EmailFrame>
       </Body>
     </Html>,
   );

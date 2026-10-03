@@ -1,20 +1,60 @@
 "use client";
 
-import { Puck } from "@puckeditor/core";
+import { useMemo, useState } from "react";
+import { Puck, type Plugin } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
 import { blocksConfig } from "@/blocks";
 import type { EmailData } from "@/email/render";
+import { defaultStyle, resolveStyle } from "@/email/theme";
 import { SendPanel } from "./send-panel";
+import { StylePanel } from "./style-panel";
 
-const emptyEmail: EmailData = { content: [], root: { props: { title: "", subject: "" } } };
+const emptyEmail: EmailData = {
+  content: [],
+  root: { props: { title: "", subject: "", style: defaultStyle } },
+};
+
+// Defined once, outside the component: Puck rebuilds its internal state
+// whenever these objects change identity.
+const overrides = { headerActions: () => <SendPanel /> };
+
+// Puck always adds its own "Blocks" and "Outline" tabs. A plugin with the
+// same name replaces a built-in one, so naming ours "outline" swaps the
+// Outline tab for Style in the same spot.
+const plugins: Plugin[] = [
+  {
+    name: "outline",
+    label: "Style",
+    icon: <PaletteIcon />,
+    render: () => <StylePanel />,
+  },
+];
 
 export function Editor() {
+  // The saved style, kept here so Puck can hand it to every block as metadata.
+  const [rawStyle, setRawStyle] = useState<unknown>(emptyEmail.root.props?.style);
+  const metadata = useMemo(() => ({ style: resolveStyle(rawStyle) }), [rawStyle]);
+
   return (
     <Puck
       config={blocksConfig}
       data={emptyEmail}
-      // Swap Puck's Publish button for our Send button and popup.
-      overrides={{ headerActions: () => <SendPanel /> }}
+      plugins={plugins}
+      overrides={overrides}
+      metadata={metadata}
+      // Only the style reference matters here; React skips the update when it hasn't changed.
+      onChange={(data) => setRawStyle(data.root.props?.style)}
     />
+  );
+}
+
+function PaletteIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M12 22a10 10 0 1 1 10-10c0 2.8-2.2 4-4 4h-2a2 2 0 0 0-1.5 3.3A2 2 0 0 1 12 22Z" />
+      <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
+      <circle cx="12" cy="7.5" r="1" fill="currentColor" />
+      <circle cx="16.5" cy="10.5" r="1" fill="currentColor" />
+    </svg>
   );
 }
