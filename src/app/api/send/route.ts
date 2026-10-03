@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { renderEmailHtml, type EmailData } from "@/email/render";
-import { getResendSettings } from "@/lib/resend";
+import { resend } from "@/lib/resend";
 
-// Fixed for this first slice; the send panel will let users type one.
+// Fixed for this first slice; the send panel will let users type these.
 const SUBJECT = "Test email from the builder";
+const TO = process.env.RESEND_TO_EMAIL ?? "";
 
 // Light shape check only: confirms this looks like Puck data before rendering.
 function isEmailData(value: unknown): value is EmailData {
@@ -27,18 +28,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Add at least one block before sending." }, { status: 400 });
   }
 
-  let settings: ReturnType<typeof getResendSettings>;
-  try {
-    settings = getResendSettings();
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Email settings are missing.";
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-
   const html = await renderEmailHtml(body);
-  const { data, error } = await settings.resend.emails.send({
-    from: settings.from,
-    to: settings.to,
+  const { data, error } = await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
+    to: TO,
     subject: SUBJECT,
     html,
   });
