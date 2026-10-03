@@ -102,7 +102,16 @@ temporal server start-dev
 
 ## Time Spent
 
-<!-- Track your time here -->
+--6:30pm--
+- Got repo running. Drag and drop editor working.
+- Made a plan to create an email builder for supper clubs/pop-up dinners.
+
+--7:00pm--
+- Email sending: sending via Resend with recipient input, subject line, status. Made the subject line and page title equivalent.
+- Live email preview working on dektop, tablet, mobile.
+
+--7:30pm--
+- Added a style tab to the editor sidebar. Intakes brand colors and allows various color, font defaults to be adjusted.
 
 ## Resources
 
