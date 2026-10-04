@@ -166,6 +166,24 @@ describe("BodyCopy", () => {
   });
 });
 
+describe("BodyCopy rich text", () => {
+  it("sends links as underlined links in the paragraph's color", async () => {
+    const out = await html(block("BodyCopy", { text: '<p>See the <a href="https://example.com/menu">menu</a>.</p>' }));
+    expect(out).toContain('<a href="https://example.com/menu" style="color:#000000;text-decoration:underline"');
+    expect(out).toContain(">menu</a>");
+  });
+
+  it("strips unsafe links and markup someone slips into the saved data", async () => {
+    const out = await html(
+      block("BodyCopy", {
+        text: '<p><a href="javascript:alert(1)">x</a><img src=x onerror=alert(1)><script>bad()</script></p>',
+      }),
+    );
+    expect(out).not.toMatch(/javascript:|onerror|<script|bad\(\)/);
+    expect(out).toContain(">x</p>");
+  });
+});
+
 describe("Quote", () => {
   it("shows the quote, attribution, and accent bar color", async () => {
     const out = await html(block("Quote", { quote: "Amazing", attribution: "Maria", accentColor: "#0a7a3a" }));

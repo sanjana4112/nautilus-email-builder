@@ -1,6 +1,6 @@
 import type { ComponentConfig } from "@puckeditor/core";
-import { Fragment } from "react";
-import { Text } from "@react-email/components";
+import type { ReactNode } from "react";
+import { richTextToEmailHtml } from "@/email/rich-text";
 import { applyOverride, noOverride, textCss, TEXT_STYLE_LABELS, type TextOverride } from "@/email/theme";
 import {
   alignField,
@@ -22,11 +22,32 @@ export type BodyCopyProps = BoxProps & {
   typography: TextOverride;
 };
 
-// A paragraph of text. Line breaks typed in the editor are kept.
+// Rich text formatting kept for email: bold, italic, underline, and links.
+// Headings, lists, and the rest are off: the Heading block and Style tab
+// cover those, and they're less reliable in inboxes. The toolbar (with the
+// Link button and Ctrl/Cmd-K) is added in editor/puck-config.tsx.
+export const EMAIL_RICH_TEXT_OPTIONS = {
+  heading: false,
+  bulletList: false,
+  orderedList: false,
+  listItem: false,
+  listKeymap: false,
+  blockquote: false,
+  code: false,
+  codeBlock: false,
+  horizontalRule: false,
+  strike: false,
+  textAlign: false,
+  // Clicking a link while editing should place the cursor, not open the page.
+  link: { openOnClick: false, autolink: false, linkOnPaste: true },
+} as const;
+
+// Paragraphs of text with bold, italic, underline, and links. Edit it on the
+// canvas or in the right tab.
 export const BodyCopy: ComponentConfig<BodyCopyProps> = {
   label: "Body copy",
   fields: {
-    text: { type: "textarea", label: "Text" },
+    text: { type: "richtext", label: "Text", contentEditable: true, options: EMAIL_RICH_TEXT_OPTIONS },
     textStyle: {
       type: "select",
       label: "Text style",
@@ -37,26 +58,28 @@ export const BodyCopy: ComponentConfig<BodyCopyProps> = {
     ...boxFields,
   },
   defaultProps: {
-    text: "Write your message here.",
+    text: "<p>Write your message here.</p>",
     textStyle: "normal",
     align: "left",
     typography: noOverride,
     ...boxDefaults(0, 16),
   },
   render: ({ text, textStyle, align, typography, puck, box }) => {
-    const style = styleOf(puck).text[textStyle] ?? styleOf(puck).text.normal;
-    // <br> instead of CSS white-space, which some inboxes ignore.
-    const lines = (text ?? "").split("\n");
+    const base = styleOf(puck).text[textStyle] ?? styleOf(puck).text.normal;
+    const css = textCss(applyOverride(base, typography));
+    // Links: the paragraph's color, underlined (the email norm).
+    const linkStyle = `${css.color ? `color:${css.color};` : ""}text-decoration:underline`;
     return (
       <Box {...box}>
-        <Text style={{ ...textCss(applyOverride(style, typography)), lineHeight: 1.5, textAlign: align, margin: 0 }}>
-          {lines.map((line, i) => (
-            <Fragment key={i}>
-              {i > 0 && <br />}
-              {line}
-            </Fragment>
-          ))}
-        </Text>
+        {/* On the canvas Puck passes a live editor; when sending, the saved HTML,
+            which is cleaned to an email-safe allowlist first. */}
+        <div className="eb-rich" style={{ ...css, lineHeight: 1.5, textAlign: align }}>
+          {typeof text === "string" ? (
+            <div dangerouslySetInnerHTML={{ __html: richTextToEmailHtml(text, linkStyle) }} />
+          ) : (
+            (text as ReactNode)
+          )}
+        </div>
       </Box>
     );
   },

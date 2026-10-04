@@ -4,6 +4,7 @@ import type { Config, Field } from "@puckeditor/core";
 import { blocksConfig, type BlockProps, type EmailRootProps } from "@/blocks";
 import { ImageField } from "./image-field";
 import { PaletteField } from "./palette-field";
+import { renderRichTextMenu } from "./rich-text-menu";
 
 // Swap fields blocks marked for the editor: palette colors become swatches
 // and image links get a preview with a resolution check. Also applies to
@@ -33,6 +34,9 @@ function upgradeField(field: Field): Field {
         <ImageField label={field.label ?? "Image"} value={String(value ?? "")} onChange={onChange} />
       ),
     } satisfies Field<string>;
+  }
+  if (field.type === "richtext") {
+    return { ...field, renderMenu: renderRichTextMenu, renderInlineMenu: renderRichTextMenu };
   }
   if (field.type === "object") return { ...field, objectFields: upgradeFields(field.objectFields) };
   if (field.type === "array") return { ...field, arrayFields: upgradeFields(field.arrayFields) };
