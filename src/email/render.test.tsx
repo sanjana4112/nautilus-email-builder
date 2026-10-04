@@ -59,9 +59,9 @@ describe("renderEmailHtml", () => {
     expect(html).toContain("max-width:480px");
   });
 
-  it("keeps content no wider than the 600px email", async () => {
-    const html = await renderEmailHtml(email([heading("Hi")], defaultStyle, { contentWidth: 900 }));
-    expect(html).toContain("max-width:600px");
+  it("stretches content to the screen, capped at the content width", async () => {
+    const html = await renderEmailHtml(email([heading("Hi")], defaultStyle, { contentWidth: 5000 }));
+    expect(html).toContain("max-width:1600px;width:100%");
   });
 
   it("applies a block's spacing and leaves its background transparent by default", async () => {
@@ -84,7 +84,7 @@ describe("renderEmailHtml", () => {
 
   it("uses default styles when none are saved", async () => {
     const html = await renderEmailHtml(email([heading("Hi")]));
-    expect(html).toContain("max-width:600px");
+    expect(html).toContain("max-width:1000px");
     expect(html).toContain("font-size:28px");
   });
 

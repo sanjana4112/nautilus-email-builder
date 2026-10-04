@@ -25,18 +25,12 @@ function upgradeField(field: Field): Field {
       ),
     } satisfies Field<string>;
   }
-  const image = field.metadata?.image as { minWidth: number } | undefined;
-  if (image) {
+  if (field.metadata?.image) {
     return {
       type: "custom",
       label: field.label,
       render: ({ value, onChange }) => (
-        <ImageField
-          label={field.label ?? "Image"}
-          value={String(value ?? "")}
-          onChange={onChange}
-          minWidth={image.minWidth}
-        />
+        <ImageField label={field.label ?? "Image"} value={String(value ?? "")} onChange={onChange} />
       ),
     } satisfies Field<string>;
   }

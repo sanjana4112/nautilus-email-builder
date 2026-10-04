@@ -12,9 +12,8 @@ export type ColumnsProps = BoxProps & {
   column4: Slot;
 };
 
-// Up to four columns side by side; drop any blocks into each one. They wrap
-// on narrow screens (see RESPONSIVE_CSS in email/frame.tsx): 4 -> 2x2 on
-// tablets, one column per row on phones.
+// Up to four columns side by side; drop any blocks into each one. On phones
+// they stack, one per row (see RESPONSIVE_CSS in email/frame.tsx).
 export const Columns: ComponentConfig<ColumnsProps> = {
   fields: {
     count: {

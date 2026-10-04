@@ -34,13 +34,10 @@ export function paletteColorField(label: string, { allowNone = false, noneLabel 
 }
 
 // An image link field. The editor shows a preview and warns when the image
-// is narrower than minWidth (blurry on phones and high-res screens), see
-// editor/image-field.tsx. Here it is a plain text field.
-// 1200px = twice the 600px email width, for sharp results on retina screens.
-export const SHARP_IMAGE_WIDTH = 1200;
-
-export function imageField(label: string, minWidth = SHARP_IMAGE_WIDTH): TextField {
-  return { type: "text", label, metadata: { image: { minWidth } } };
+// is too small to stay sharp at the email's width (see editor/image-field.tsx).
+// Here it is a plain text field.
+export function imageField(label: string): TextField {
+  return { type: "text", label, metadata: { image: true } };
 }
 
 // --- Text overrides --------------------------------------------------------
@@ -70,7 +67,9 @@ export function textOverrideField(label = "Typography"): ObjectField<TextOverrid
           ...(Object.keys(EMAIL_SAFE_FONTS) as FontName[]).map((f) => ({ value: f, label: f })),
         ],
       },
-      size: { type: "number", label: "Size", ...LIMITS.fontSize },
+      // No min here: Puck drops keystrokes below it, so "12" couldn't be typed
+      // (the "1" is under 8). applyOverride keeps the real 8 to 72px range.
+      size: { type: "number", label: "Size", max: LIMITS.fontSize.max },
       bold: toggleField("Bold"),
       italic: toggleField("Italic"),
       underline: toggleField("Underline"),

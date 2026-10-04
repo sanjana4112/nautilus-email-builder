@@ -8,6 +8,7 @@ import { renderEmailHtml, type EmailData } from "@/email/render";
 const usePuck = createUsePuck<typeof blocksConfig>();
 
 const WIDTHS = [
+  // How a reader sees it: Desktop is an inbox pane with the email centered.
   { label: "Desktop", width: 1000 },
   { label: "Tablet", width: 768 },
   { label: "Mobile", width: 375 },

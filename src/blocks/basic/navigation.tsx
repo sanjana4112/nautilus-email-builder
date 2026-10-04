@@ -1,4 +1,5 @@
 import type { ComponentConfig } from "@puckeditor/core";
+import { Fragment } from "react";
 import { Link } from "@react-email/components";
 import { applyOverride, noOverride, textCss, type TextOverride } from "@/email/theme";
 import {
@@ -106,29 +107,38 @@ export const Navigation: ComponentConfig<NavigationProps> = {
           <tbody>
             <tr>
               {items.map((link, i) => (
-                <td
-                  key={i}
-                  width={`${100 / items.length}%`}
-                  style={{
-                    padding: `0 ${gap / 2}px`,
-                    textAlign: "center",
-                    verticalAlign: "middle",
-                    borderLeft:
-                      look === "separators" && i > 0 ? `1px solid ${colorOr(separatorColor, "#000000")}` : undefined,
-                  }}
-                >
-                  <Link
-                    href={link.href}
-                    style={{
-                      ...textCss({ ...allLinks, color: colorOr(link.linkColor, allLinks.color) }),
-                      display: "block",
-                      padding: "10px 4px",
-                      backgroundColor: look === "boxes" ? colorOr(link.boxColor, DEFAULT_BOX) : undefined,
-                    }}
+                <Fragment key={i}>
+                  {look === "separators" && i > 0 && (
+                    // A short line floating between links, about the height of the text.
+                    <td width="1" style={{ width: 1, padding: 0, verticalAlign: "middle" }}>
+                      <div
+                        style={{
+                          width: 1,
+                          height: Math.round(allLinks.size * 1.1),
+                          backgroundColor: colorOr(separatorColor, "#000000"),
+                        }}
+                      />
+                    </td>
+                  )}
+                  <td
+                    width={`${100 / items.length}%`}
+                    style={{ padding: `0 ${gap / 2}px`, textAlign: "center", verticalAlign: "middle" }}
                   >
-                    {link.label}
-                  </Link>
-                </td>
+                    <Link
+                      href={link.href}
+                      style={{
+                        ...textCss({ ...allLinks, color: colorOr(link.linkColor, allLinks.color) }),
+                        display: "block",
+                        lineHeight: 1.4,
+                        // Boxes and the solid bar need room around the text for their color.
+                        padding: look === "boxes" || look === "bar" ? "8px 4px" : "2px 4px",
+                        backgroundColor: look === "boxes" ? colorOr(link.boxColor, DEFAULT_BOX) : undefined,
+                      }}
+                    >
+                      {link.label}
+                    </Link>
+                  </td>
+                </Fragment>
               ))}
             </tr>
           </tbody>

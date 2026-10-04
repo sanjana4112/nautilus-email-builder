@@ -45,12 +45,16 @@ export type PageSettings = {
   contentWidth: number;
 };
 
-// The standard email width most inboxes are designed around.
+// The classic email width; editor placeholders use its proportions.
 export const EMAIL_WIDTH = 600;
+
+// Content stretches to fill the reader's screen, up to this width by default,
+// so lines stay readable on big monitors.
+export const DEFAULT_CONTENT_WIDTH = 1000;
 
 export const LIMITS = {
   fontSize: { min: 8, max: 72 },
-  contentWidth: { min: 320, max: EMAIL_WIDTH },
+  contentWidth: { min: 320, max: 1600 },
   space: { min: 0, max: 160 },
   paletteSize: 15,
 } as const;
@@ -74,10 +78,11 @@ export const defaultStyle: EmailStyle = {
   },
 };
 
-// Content fills the whole email by default; narrowing it shows the background at the sides.
+// Content fills the reader's screen up to contentWidth; on wider screens the
+// page background shows at the sides.
 export const defaultPage: PageSettings = {
   background: WHITE,
-  contentWidth: EMAIL_WIDTH,
+  contentWidth: DEFAULT_CONTENT_WIDTH,
 };
 
 const HEX = /^#[0-9a-f]{6}$/i;

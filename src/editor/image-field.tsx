@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AutoField, FieldLabel } from "@puckeditor/core";
+import { AutoField, createUsePuck, FieldLabel } from "@puckeditor/core";
+import type { blocksConfig } from "@/blocks";
+import { resolvePage } from "@/email/theme";
+
+const usePuck = createUsePuck<typeof blocksConfig>();
 
 type Check =
   | { state: "empty" }
@@ -10,19 +14,21 @@ type Check =
   | { state: "ok"; width: number; height: number };
 
 // An image link with a live preview and a resolution check. The email always
-// scales images to fit its width; this only warns when an image is too small
-// to stay sharp. (Uploading replaces the link box once storage is set up.)
+// scales images to fit its width; this only warns when an image is narrower
+// than twice the page's content width, which is what phones and high-res
+// screens need to stay sharp. (Uploading replaces the link box once storage
+// is set up.)
 export function ImageField({
   label,
   value,
   onChange,
-  minWidth,
 }: {
   label: string;
   value: string;
   onChange: (url: string) => void;
-  minWidth: number;
 }) {
+  const contentWidth = usePuck((s) => resolvePage(s.appState.data.root.props).contentWidth);
+  const minWidth = contentWidth * 2;
   const url = value.trim();
   const isHttps = /^https:\/\//i.test(url);
   // Only the result of loading the image is stored; the rest follows from the link.

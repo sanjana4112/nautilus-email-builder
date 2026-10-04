@@ -51,7 +51,8 @@ export const Banner: ComponentConfig<BannerProps> = {
       objectFields: {
         color: paletteColorField("Strip color"),
         textColor: paletteColorField("Text color"),
-        height: { type: "number", label: "Height", min: 32, max: 160 },
+        // No min: Puck would drop the "4" in "48". The render keeps 32 to 160px.
+        height: { type: "number", label: "Height", max: 160 },
       },
     },
     typography: textOverrideField(),

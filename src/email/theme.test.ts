@@ -55,19 +55,19 @@ describe("resolveStyle", () => {
 });
 
 describe("resolvePage", () => {
-  it("defaults to a white page with content filling the 600px email", () => {
+  it("defaults to a white page with content filling the screen up to 1000px", () => {
     expect(resolvePage(undefined)).toEqual(defaultPage);
-    expect(defaultPage).toEqual({ background: "#ffffff", contentWidth: 600 });
+    expect(defaultPage).toEqual({ background: "#ffffff", contentWidth: 1000 });
   });
 
   it("ignores a bad background color", () => {
     expect(resolvePage({ background: "red; display:none" }).background).toBe("#ffffff");
   });
 
-  it("keeps content width between 320 and 600px", () => {
+  it("keeps content width between 320 and 1600px", () => {
     expect(resolvePage({ contentWidth: 100 }).contentWidth).toBe(320);
-    expect(resolvePage({ contentWidth: 5000 }).contentWidth).toBe(600);
-    expect(resolvePage({ contentWidth: "wide" }).contentWidth).toBe(600);
+    expect(resolvePage({ contentWidth: 5000 }).contentWidth).toBe(1600);
+    expect(resolvePage({ contentWidth: "wide" }).contentWidth).toBe(1000);
   });
 });
 

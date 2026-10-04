@@ -94,7 +94,8 @@ describe("Navigation", () => {
     const separated = await html(
       block("Navigation", { style: style({ look: "separators", separatorColor: "#ff0000" }), links: two }),
     );
-    expect((separated.match(/border-left:1px solid #ff0000/g) ?? []).length).toBe(1);
+    expect((separated.match(/background-color:#ff0000/g) ?? []).length).toBe(1);
+    expect(separated).toContain("height:18px");
     const bar = await html(block("Navigation", { style: style({ look: "bar", barColor: "#123456" }), links: two }));
     expect(bar).toContain("background-color:#123456");
   });

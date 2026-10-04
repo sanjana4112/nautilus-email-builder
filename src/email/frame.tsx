@@ -2,14 +2,12 @@ import type { ReactNode } from "react";
 import { Container, Section } from "@react-email/components";
 import type { PageSettings } from "./theme";
 
-// Screen-size rules for the Columns block. Columns sit side by side by
-// default; on tablets 3 or 4 columns wrap to two per row, and on phones
-// every column stacks. Inboxes that ignore these rules (older Outlook) keep
-// the side-by-side layout from the inline styles.
+// Screen-size rule for the Columns block: columns sit side by side, and on
+// phones each one takes the full width. Inboxes that ignore this rule
+// (older Outlook) keep the side-by-side layout from the inline styles.
+// (Inboxes judge layout by screen width, not email width, so a tablet rule
+// would also fire in the editor's 600px Email view.)
 export const RESPONSIVE_CSS = `
-@media (max-width: 820px) {
-  .eb-cols-3 > .eb-col, .eb-cols-4 > .eb-col { max-width: 50% !important; }
-}
 @media (max-width: 480px) {
   .eb-col { max-width: 100% !important; }
 }
