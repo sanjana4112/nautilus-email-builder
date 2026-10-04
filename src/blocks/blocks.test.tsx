@@ -204,6 +204,47 @@ describe("SocialLinks", () => {
   });
 });
 
+describe("Banner", () => {
+  it("defaults to a colored text strip", async () => {
+    const out = await html(block("Banner"));
+    expect(out).toContain("Reservations open Friday");
+    expect(out).toContain("background-color:#000000");
+    expect(out).toContain("height:64px");
+    expect(out).not.toContain("<img");
+  });
+
+  it("links the strip text and keeps its height between 32 and 160px", async () => {
+    const out = await html(
+      block("Banner", {
+        linkUrl: "https://example.com/book",
+        strip: { color: "#0a7a3a", textColor: "#ffffff", height: 999 },
+      }),
+    );
+    expect(out).toContain('href="https://example.com/book"');
+    expect(out).toContain("background-color:#0a7a3a");
+    expect(out).toContain("height:160px");
+  });
+
+  it("shows a banner image with its alt text, full width", async () => {
+    const out = await html(
+      block("Banner", { kind: "image", imageUrl: "https://cdn.example.com/banner.jpg", alt: "Summer supper" }),
+    );
+    expect(out).toMatch(
+      /<img[^>]*alt="Summer supper"[^>]*src="https:\/\/cdn.example.com\/banner.jpg"|<img[^>]*src="https:\/\/cdn.example.com\/banner.jpg"[^>]*alt="Summer supper"/,
+    );
+    expect(out).toContain("width:100%");
+    expect(out).not.toContain("Reservations open Friday");
+  });
+
+  it("leaves out an image banner with a missing or unsafe link", async () => {
+    for (const imageUrl of ["", "http://cdn.example.com/banner.jpg", "javascript:alert(1)"]) {
+      const out = await html(block("Banner", { kind: "image", imageUrl }));
+      expect(out).not.toContain("<img");
+      expect(out).not.toContain("Add a banner image");
+    }
+  });
+});
+
 describe("layout blocks", () => {
   const button = (label: string) => block("Button", { label, url: "https://example.com" });
 

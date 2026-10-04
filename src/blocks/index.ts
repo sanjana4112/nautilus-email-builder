@@ -2,6 +2,7 @@ import type { Config } from "@puckeditor/core";
 import { createElement } from "react";
 import { EmailFrame } from "@/email/frame";
 import { LIMITS, resolvePage, type EmailStyle } from "@/email/theme";
+import { Banner, type BannerProps } from "./basic/banner";
 import { BodyCopy, type BodyCopyProps } from "./basic/body-copy";
 import { Button, type ButtonProps } from "./basic/button";
 import { Columns, type ColumnsProps } from "./basic/columns";
@@ -22,6 +23,7 @@ export type BlockProps = {
   Columns: ColumnsProps;
   Title: TitleProps;
   Navigation: NavigationProps;
+  Banner: BannerProps;
   Image: ImageProps;
   Heading: HeadingProps;
   BodyCopy: BodyCopyProps;
@@ -66,6 +68,7 @@ export const blocksConfig: Config<BlockProps, EmailRootProps> = {
     Columns,
     Title,
     Navigation,
+    Banner,
     Image: ImageBlock,
     Heading,
     BodyCopy,

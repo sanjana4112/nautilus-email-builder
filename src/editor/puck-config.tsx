@@ -2,11 +2,13 @@
 
 import type { Config, Field } from "@puckeditor/core";
 import { blocksConfig, type BlockProps, type EmailRootProps } from "@/blocks";
+import { ImageField } from "./image-field";
 import { PaletteField } from "./palette-field";
 
-// Swap any field a block marked as a palette color for the swatch picker,
-// including fields nested in groups (object) and lists (array).
-// Only the field's editor UI changes; the saved value is still a hex string.
+// Swap fields blocks marked for the editor: palette colors become swatches
+// and image links get a preview with a resolution check. Also applies to
+// fields nested in groups (object) and lists (array).
+// Only the field's editor UI changes; the saved value is still a plain string.
 function upgradeField(field: Field): Field {
   if (field.metadata?.palette) {
     return {
@@ -19,6 +21,21 @@ function upgradeField(field: Field): Field {
           onChange={onChange}
           allowNone={Boolean(field.metadata?.allowNone)}
           noneLabel={field.metadata?.noneLabel}
+        />
+      ),
+    } satisfies Field<string>;
+  }
+  const image = field.metadata?.image as { minWidth: number } | undefined;
+  if (image) {
+    return {
+      type: "custom",
+      label: field.label,
+      render: ({ value, onChange }) => (
+        <ImageField
+          label={field.label ?? "Image"}
+          value={String(value ?? "")}
+          onChange={onChange}
+          minWidth={image.minWidth}
         />
       ),
     } satisfies Field<string>;
@@ -45,7 +62,7 @@ export const editorConfig: Config<BlockProps, EmailRootProps> = {
   root: withPaletteFields(blocksConfig.root ?? {}),
   categories: {
     layout: { title: "Layout", components: ["Section", "Container", "Columns"] },
-    header: { title: "Header", components: ["Title", "Navigation"] },
+    header: { title: "Header", components: ["Title", "Banner", "Navigation"] },
     content: { title: "Content", components: ["Heading", "BodyCopy", "Image", "Quote", "Button"] },
     social: { title: "Social", components: ["SocialLinks"] },
   },

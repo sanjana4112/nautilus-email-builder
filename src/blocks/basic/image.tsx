@@ -1,7 +1,7 @@
 import type { ComponentConfig } from "@puckeditor/core";
 import { Img, Link, Text } from "@react-email/components";
 import { EMAIL_WIDTH } from "@/email/theme";
-import { Box, boxDefaults, boxFields, safeHref, safeImageSrc, type BoxProps } from "../shared";
+import { Box, boxDefaults, boxFields, imageField, safeHref, safeImageSrc, type BoxProps } from "../shared";
 
 export type ImageProps = BoxProps & {
   imageUrl: string;
@@ -16,7 +16,7 @@ const PLACEHOLDER_HEIGHT = EMAIL_WIDTH / 2;
 export const ImageBlock: ComponentConfig<ImageProps> = {
   label: "Image",
   fields: {
-    imageUrl: { type: "text", label: "Image link" },
+    imageUrl: imageField("Image"),
     alt: { type: "text", label: "Alt text" },
     linkUrl: { type: "text", label: "Link" },
     ...boxFields,

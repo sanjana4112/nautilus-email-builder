@@ -33,6 +33,16 @@ export function paletteColorField(label: string, { allowNone = false, noneLabel 
   return { type: "text", label, metadata: { palette: true, allowNone, noneLabel } };
 }
 
+// An image link field. The editor shows a preview and warns when the image
+// is narrower than minWidth (blurry on phones and high-res screens), see
+// editor/image-field.tsx. Here it is a plain text field.
+// 1200px = twice the 600px email width, for sharp results on retina screens.
+export const SHARP_IMAGE_WIDTH = 1200;
+
+export function imageField(label: string, minWidth = SHARP_IMAGE_WIDTH): TextField {
+  return { type: "text", label, metadata: { image: { minWidth } } };
+}
+
 // --- Text overrides --------------------------------------------------------
 
 const toggleField = (label: string): SelectField => ({
