@@ -8,6 +8,7 @@ import { defaultPage, defaultStyle, resolveStyle } from "@/email/theme";
 import { FieldGroup } from "./field-group";
 import { editorConfig } from "./puck-config";
 import { LinkDialog } from "./rich-text-menu";
+import { ScheduledPanel } from "./scheduled-panel";
 import { SendPanel } from "./send-panel";
 import { StylePanel } from "./style-panel";
 
@@ -33,6 +34,12 @@ const plugins: Plugin[] = [
     label: "Style",
     icon: <PaletteIcon />,
     render: () => <StylePanel />,
+  },
+  {
+    name: "scheduled",
+    label: "Scheduled",
+    icon: <ClockIcon />,
+    render: () => <ScheduledPanel />,
   },
 ];
 
@@ -80,6 +87,15 @@ function PaletteIcon() {
       <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
       <circle cx="12" cy="7.5" r="1" fill="currentColor" />
       <circle cx="16.5" cy="10.5" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
     </svg>
   );
 }

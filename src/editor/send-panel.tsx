@@ -14,6 +14,24 @@ type CsvPreview = { file: File; name: string; contacts: number; skipped: Skipped
 type ImportState = { state: "idle" } | { state: "working"; message: string } | { state: "error"; message: string };
 
 const POLL_MS = 1500;
+
+// The scheduled-sends tab listens for this to refresh its list.
+export const SCHEDULED_EVENT = "email-builder:scheduled";
+
+// A datetime-local value ("2030-01-31T09:00") for a time in the reader's own zone.
+function localInputValue(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+const formatWhen = (iso: string) =>
+  new Date(iso).toLocaleString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 const MAX_POLLS = 400; // about 10 minutes
 
 async function readJson<T>(response: Response): Promise<T & { error?: string }> {
@@ -38,6 +56,9 @@ export function SendPanel() {
   const [csvError, setCsvError] = useState("");
   const [importState, setImportState] = useState<ImportState>({ state: "idle" });
   const [sending, setSending] = useState(false);
+  const [when, setWhen] = useState<"now" | "later">("now");
+  const [sendAt, setSendAt] = useState("");
+  const [earliest, setEarliest] = useState(""); // set when Schedule is picked
   const [status, setStatus] = useState("");
   const isOpen = useRef(false);
 
@@ -54,6 +75,8 @@ export function SendPanel() {
       const result = await readJson<{ segments?: List[] }>(await fetch("/api/segments"));
       if (result.error || !result.segments) throw new Error(result.error);
       setLists(result.segments);
+      // Start on the first list, so there's no extra "choose" step.
+      setListId((current) => current || result.segments?.[0]?.id || "");
     } catch (err) {
       setListsError(err instanceof Error && err.message ? err.message : "Couldn't load your lists.");
     }
@@ -123,22 +146,28 @@ export function SendPanel() {
         ? { to: new FormData(event.currentTarget).get("to") }
         : { segmentId: listId, listName: list?.name };
 
+    const later = when === "later";
+    // The picker shows the reader's local time; the server gets an exact moment.
+    const at = later ? new Date(sendAt) : null;
+    if (later && (!at || Number.isNaN(at.getTime()))) return setStatus("Pick a date and time to send.");
+
     setSending(true);
-    setStatus("Sending...");
+    setStatus(later ? "Scheduling..." : "Sending...");
     try {
-      const response = await fetch("/api/send", {
+      const response = await fetch(later ? "/api/schedule" : "/api/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...target, data }),
+        body: JSON.stringify({ ...target, data, ...(at ? { sendAt: at.toISOString() } : {}) }),
       });
-      const result = await readJson<{ id?: string }>(response);
-      setStatus(
-        response.ok
-          ? recipients === "one"
-            ? "Sent!"
-            : `Sending to ${list?.name ?? "your list"}.`
-          : `Could not send: ${result.error}`,
-      );
+      const result = await readJson<{ id?: string; sendAt?: string }>(response);
+      if (!response.ok) {
+        setStatus(`Could not ${later ? "schedule" : "send"}: ${result.error}`);
+      } else if (later) {
+        setStatus(`Scheduled for ${formatWhen(result.sendAt ?? at!.toISOString())}.`);
+        window.dispatchEvent(new Event(SCHEDULED_EVENT));
+      } else {
+        setStatus(recipients === "one" ? "Sent!" : `Sending to ${list?.name ?? "your list"}.`);
+      }
     } catch {
       setStatus("Could not reach the server. Check that it is running.");
     } finally {
@@ -147,7 +176,12 @@ export function SendPanel() {
   }
 
   const importing = importState.state === "working";
-  const canSend = Boolean(subject) && !sending && !importing && (recipients === "one" || Boolean(listId));
+  const canSend =
+    Boolean(subject) &&
+    !sending &&
+    !importing &&
+    (recipients === "one" || Boolean(listId)) &&
+    (when === "now" || Boolean(sendAt));
 
   return (
     <>
@@ -174,7 +208,7 @@ export function SendPanel() {
                 onClick={() => setRecipients(r)}
                 className={`flex-1 rounded px-3 py-1.5 transition-colors ${recipients === r ? "bg-zinc-900 text-white" : "text-zinc-600 hover:text-zinc-900"}`}
               >
-                {r === "one" ? "One address" : "A list"}
+                {r === "one" ? "Email address" : "Email list"}
               </button>
             ))}
           </div>
@@ -201,9 +235,10 @@ export function SendPanel() {
                   disabled={lists === null}
                   className="rounded border border-zinc-300 bg-white px-3 py-2"
                 >
-                  <option value="">
-                    {lists === null ? "Loading lists…" : lists.length ? "Choose a list" : "No lists yet: add one below"}
-                  </option>
+                  {/* Only a placeholder while loading or when there are no lists yet. */}
+                  {(lists === null || lists.length === 0) && (
+                    <option value="">{lists === null ? "Loading lists…" : "No lists yet: add one below"}</option>
+                  )}
                   {lists?.map((l) => (
                     <option key={l.id} value={l.id}>
                       {l.name}
@@ -282,13 +317,55 @@ export function SendPanel() {
             </div>
           )}
 
+          <div className="flex flex-col gap-2 text-sm">
+            <div className="flex rounded-md border border-zinc-200 p-0.5" role="radiogroup" aria-label="When">
+              {(["now", "later"] as const).map((w) => (
+                <button
+                  key={w}
+                  type="button"
+                  role="radio"
+                  aria-checked={when === w}
+                  onClick={() => {
+                    setWhen(w);
+                    if (w === "later") setEarliest(localInputValue(new Date(Date.now() + 2 * 60 * 1000)));
+                    // Suggest a time an hour from now, on the hour.
+                    if (w === "later" && !sendAt) {
+                      const suggested = new Date(Date.now() + 60 * 60 * 1000);
+                      suggested.setMinutes(0, 0, 0);
+                      setSendAt(localInputValue(suggested));
+                    }
+                  }}
+                  className={`flex-1 rounded px-3 py-1.5 transition-colors ${when === w ? "bg-zinc-900 text-white" : "text-zinc-600 hover:text-zinc-900"}`}
+                >
+                  {w === "now" ? "Send now" : "Schedule"}
+                </button>
+              ))}
+            </div>
+            {when === "later" && (
+              <label className="flex flex-col gap-1">
+                Send at
+                <input
+                  type="datetime-local"
+                  value={sendAt}
+                  min={earliest}
+                  onChange={(e) => setSendAt(e.target.value)}
+                  required
+                  className="rounded border border-zinc-300 px-3 py-2"
+                />
+                <span className="text-xs text-zinc-500">
+                  Your time zone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                </span>
+              </label>
+            )}
+          </div>
+
           {status && <p className="text-sm">{status}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => dialogRef.current?.close()}>
               Cancel
             </Button>
             <Button type="submit" disabled={!canSend} loading={sending}>
-              Send
+              {when === "now" ? "Send" : "Schedule"}
             </Button>
           </div>
         </form>
