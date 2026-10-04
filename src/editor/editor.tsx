@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import { Puck, type Plugin } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
-import { blocksConfig } from "@/blocks";
 import type { EmailData } from "@/email/render";
 import { defaultStyle, resolveStyle } from "@/email/theme";
+import { editorConfig } from "./puck-config";
 import { SendPanel } from "./send-panel";
 import { StylePanel } from "./style-panel";
 
@@ -37,7 +37,7 @@ export function Editor() {
 
   return (
     <Puck
-      config={blocksConfig}
+      config={editorConfig}
       data={emptyEmail}
       plugins={plugins}
       overrides={overrides}
