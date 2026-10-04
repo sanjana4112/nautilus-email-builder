@@ -1,6 +1,15 @@
 import type { CSSProperties, ReactNode } from "react";
-import type { NumberField, PuckContext, SelectField, TextField } from "@puckeditor/core";
-import { LIMITS, isHexColor, resolveSpace, resolveStyle, type EmailStyle } from "@/email/theme";
+import type { NumberField, ObjectField, PuckContext, SelectField, TextField } from "@puckeditor/core";
+import {
+  EMAIL_SAFE_FONTS,
+  LIMITS,
+  isHexColor,
+  resolveSpace,
+  resolveStyle,
+  type EmailStyle,
+  type FontName,
+  type TextOverride,
+} from "@/email/theme";
 
 // Helpers used by more than one block. Server-safe: no browser-only code.
 
@@ -18,9 +27,49 @@ export const alignField: SelectField = {
 
 // A color field the editor shows as palette swatches (see editor/puck-config.tsx).
 // Here it is a plain text field, so the server never loads editor code.
-// allowNone adds a "None" swatch, saved as "" (transparent).
-export function paletteColorField(label: string, { allowNone = false } = {}): TextField {
-  return { type: "text", label, metadata: { palette: true, allowNone } };
+// allowNone adds a swatch saved as "": transparent for backgrounds, or
+// "use the default" for text (noneLabel names it in the editor).
+export function paletteColorField(
+  label: string,
+  { allowNone = false, noneLabel = "None (transparent)" } = {},
+): TextField {
+  return { type: "text", label, metadata: { palette: true, allowNone, noneLabel } };
+}
+
+// --- Text overrides --------------------------------------------------------
+
+const toggleField = (label: string): SelectField => ({
+  type: "select",
+  label,
+  options: [
+    { value: "", label: "Default" },
+    { value: "on", label: "On" },
+    { value: "off", label: "Off" },
+  ],
+});
+
+// A group of text settings that change only this block (or one link).
+// Every value starts at "Default", meaning the Style tab's text style.
+export function textOverrideField(label = "Text"): ObjectField<TextOverride> {
+  return {
+    type: "object",
+    label,
+    objectFields: {
+      font: {
+        type: "select",
+        label: "Font",
+        options: [
+          { value: "", label: "Default" },
+          ...(Object.keys(EMAIL_SAFE_FONTS) as FontName[]).map((f) => ({ value: f, label: f })),
+        ],
+      },
+      size: { type: "number", label: "Size (px, blank = default)", ...LIMITS.fontSize },
+      bold: toggleField("Bold"),
+      italic: toggleField("Italic"),
+      underline: toggleField("Underline"),
+      color: paletteColorField("Color", { allowNone: true, noneLabel: "Default color" }),
+    },
+  };
 }
 
 // The Style tab's settings, which Puck hands every block as metadata.

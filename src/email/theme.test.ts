@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { defaultPage, defaultStyle, isHexColor, nextPaletteColor, resolvePage, resolveStyle, textCss } from "./theme";
+import {
+  applyOverride,
+  defaultPage,
+  defaultStyle,
+  isHexColor,
+  nextPaletteColor,
+  noOverride,
+  resolvePage,
+  resolveStyle,
+  textCss,
+} from "./theme";
 
 describe("resolveStyle", () => {
   it("returns the defaults when nothing is saved", () => {
@@ -79,17 +89,51 @@ describe("nextPaletteColor", () => {
   });
 });
 
-describe("textCss", () => {
-  it("turns a text style into inline CSS", () => {
-    expect(
-      textCss({ font: "Georgia", size: 28, bold: true, italic: true, underline: true, color: "#0a7a3a" }),
-    ).toEqual({
-      fontFamily: "Georgia, 'Times New Roman', serif",
-      fontSize: "28px",
-      fontWeight: 700,
-      fontStyle: "italic",
-      textDecoration: "underline",
+describe("applyOverride", () => {
+  const base = defaultStyle.text.normal;
+
+  it("keeps the Style tab's text style when nothing is overridden", () => {
+    expect(applyOverride(base, noOverride)).toEqual(base);
+    expect(applyOverride(base, undefined)).toEqual(base);
+  });
+
+  it("changes only the settings that are set", () => {
+    expect(applyOverride(base, { ...noOverride, font: "Verdana", size: 20, bold: "on", color: "#0a7a3a" })).toEqual({
+      ...base,
+      font: "Verdana",
+      size: 20,
+      bold: true,
       color: "#0a7a3a",
     });
+  });
+
+  it("can turn a style off as well as on", () => {
+    const boldBase = { ...base, bold: true, underline: true };
+    expect(applyOverride(boldBase, { ...noOverride, bold: "off", underline: "off" })).toMatchObject({
+      bold: false,
+      underline: false,
+    });
+  });
+
+  it("ignores bad values", () => {
+    expect(applyOverride(base, { font: "Comic Sans", size: 9999, bold: "yes", color: "red" })).toEqual({
+      ...base,
+      size: 72,
+    });
+  });
+});
+
+describe("textCss", () => {
+  it("turns a text style into inline CSS", () => {
+    expect(textCss({ font: "Georgia", size: 28, bold: true, italic: true, underline: true, color: "#0a7a3a" })).toEqual(
+      {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: "28px",
+        fontWeight: 700,
+        fontStyle: "italic",
+        textDecoration: "underline",
+        color: "#0a7a3a",
+      },
+    );
   });
 });

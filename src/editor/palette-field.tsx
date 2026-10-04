@@ -14,11 +14,13 @@ export function ColorChoice({
   palette,
   onChange,
   allowNone = false,
+  noneLabel = "None (transparent)",
 }: {
   value: string;
   palette: string[];
   onChange: (c: string) => void;
   allowNone?: boolean;
+  noneLabel?: string;
 }) {
   const isNone = allowNone && !value;
   const inPalette = isNone || palette.includes(value);
@@ -29,9 +31,9 @@ export function ColorChoice({
           <button
             type="button"
             onClick={() => onChange("")}
-            aria-label="None (transparent)"
+            aria-label={noneLabel}
             aria-pressed={isNone}
-            title="None (transparent)"
+            title={noneLabel}
             className={`h-6 w-6 rounded border border-zinc-300 bg-[linear-gradient(135deg,transparent_45%,#ef4444_45%,#ef4444_55%,transparent_55%)] ${isNone ? "ring-2 ring-blue-500 ring-offset-1" : ""}`}
           />
         )}
@@ -58,18 +60,20 @@ export function PaletteField({
   value,
   onChange,
   allowNone,
+  noneLabel,
 }: {
   label?: string;
   value: string;
   onChange: (c: string) => void;
   allowNone?: boolean;
+  noneLabel?: string;
 }) {
   // Select the raw saved style (a stable reference), then resolve it here.
   const rawStyle = usePuck((s) => s.appState.data.root.props?.style);
   const { palette } = resolveStyle(rawStyle);
   return (
     <FieldLabel label={label ?? "Color"} el="div">
-      <ColorChoice value={value} palette={palette} onChange={onChange} allowNone={allowNone} />
+      <ColorChoice value={value} palette={palette} onChange={onChange} allowNone={allowNone} noneLabel={noneLabel} />
     </FieldLabel>
   );
 }

@@ -163,6 +163,38 @@ export function nextPaletteColor(palette: string[]): string {
   return c;
 }
 
+// Per-block (or per-link) changes on top of a text style, set in the right
+// tab. Empty values mean "use the Style tab's default".
+export type Toggle = "" | "on" | "off";
+export type TextOverride = {
+  font: FontName | "";
+  size?: number;
+  bold: Toggle;
+  italic: Toggle;
+  underline: Toggle;
+  color: string;
+};
+
+export const noOverride: TextOverride = { font: "", bold: "", italic: "", underline: "", color: "" };
+
+function toggle(value: unknown, fallback: boolean): boolean {
+  return value === "on" ? true : value === "off" ? false : fallback;
+}
+
+// Applies overrides to a base style. Saved data is untrusted, so each value
+// is checked the same way resolveStyle checks the Style tab.
+export function applyOverride(base: TextStyle, raw: unknown): TextStyle {
+  const o = (typeof raw === "object" && raw !== null ? raw : {}) as Record<string, unknown>;
+  return {
+    font: font(o.font, base.font),
+    size: clamp(o.size, LIMITS.fontSize, base.size),
+    bold: toggle(o.bold, base.bold),
+    italic: toggle(o.italic, base.italic),
+    underline: toggle(o.underline, base.underline),
+    color: color(o.color, base.color),
+  };
+}
+
 // Turns a text style into inline CSS, the only styling every inbox supports.
 export function textCss(t: TextStyle) {
   return {

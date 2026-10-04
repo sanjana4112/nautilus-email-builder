@@ -1,8 +1,18 @@
 import type { ComponentConfig } from "@puckeditor/core";
 import { Fragment } from "react";
 import { Link, Text } from "@react-email/components";
-import { textCss } from "@/email/theme";
-import { alignField, Box, boxDefaults, boxFields, safeHref, styleOf, type Align, type BoxProps } from "../shared";
+import { applyOverride, noOverride, textCss, type TextOverride } from "@/email/theme";
+import {
+  alignField,
+  Box,
+  boxDefaults,
+  boxFields,
+  safeHref,
+  styleOf,
+  textOverrideField,
+  type Align,
+  type BoxProps,
+} from "../shared";
 
 // The set list of networks. Shown as text links for now; icons come after
 // deploy, since icon images need a public URL inboxes can load.
@@ -19,6 +29,7 @@ type Network = keyof typeof NETWORKS;
 export type SocialLinksProps = BoxProps & {
   links: { network: Network; url: string }[];
   align: Align;
+  typography: TextOverride;
 };
 
 export const SocialLinks: ComponentConfig<SocialLinksProps> = {
@@ -39,6 +50,7 @@ export const SocialLinks: ComponentConfig<SocialLinksProps> = {
       getItemSummary: (item) => NETWORKS[item.network as Network] ?? "Network",
     },
     align: alignField,
+    typography: textOverrideField(),
     ...boxFields,
   },
   defaultProps: {
@@ -47,16 +59,17 @@ export const SocialLinks: ComponentConfig<SocialLinksProps> = {
       { network: "facebook", url: "https://facebook.com/" },
     ],
     align: "center",
+    typography: noOverride,
     ...boxDefaults(8, 16),
   },
-  render: ({ links, align, puck, spaceAbove, spaceBelow, background }) => {
+  render: ({ links, align, typography, puck, spaceAbove, spaceBelow, background }) => {
     // Skip unknown networks and missing or unsafe links.
     const items = (links ?? []).flatMap(({ network, url }) => {
       const href = safeHref(url);
       return href && network in NETWORKS ? [{ label: NETWORKS[network], href }] : [];
     });
     if (items.length === 0) return <></>;
-    const normal = textCss(styleOf(puck).text.normal);
+    const normal = textCss(applyOverride(styleOf(puck).text.normal, typography));
     return (
       <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
         <Text style={{ ...normal, textAlign: align, margin: 0 }}>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderEmailHtml, type EmailData } from "./render";
-import { defaultStyle, type EmailStyle } from "./theme";
+import { defaultStyle, noOverride, type EmailStyle } from "./theme";
 
 function email(
   content: EmailData["content"],
@@ -13,7 +13,16 @@ function email(
 const heading = (text: string, textStyle: "title" | "heading1" | "heading2" | "subtitle" = "heading1") =>
   ({
     type: "Heading",
-    props: { id: text, text, textStyle, align: "left", spaceAbove: 0, spaceBelow: 16, background: "" },
+    props: {
+      id: text,
+      text,
+      textStyle,
+      align: "left",
+      typography: noOverride,
+      spaceAbove: 0,
+      spaceBelow: 16,
+      background: "",
+    },
   }) as const;
 
 describe("renderEmailHtml", () => {
@@ -36,14 +45,18 @@ describe("renderEmailHtml", () => {
   });
 
   it("uses the right tag for each heading style", async () => {
-    const html = await renderEmailHtml(email([heading("T", "title"), heading("H2", "heading2"), heading("S", "subtitle")]));
+    const html = await renderEmailHtml(
+      email([heading("T", "title"), heading("H2", "heading2"), heading("S", "subtitle")]),
+    );
     expect(html).toMatch(/<h1[^>]*>T<\/h1>/);
     expect(html).toMatch(/<h2[^>]*>H2<\/h2>/);
     expect(html).toMatch(/<h3[^>]*>S<\/h3>/);
   });
 
   it("applies the page background and content width", async () => {
-    const html = await renderEmailHtml(email([heading("Hi")], defaultStyle, { background: "#f4f4f5", contentWidth: 480 }));
+    const html = await renderEmailHtml(
+      email([heading("Hi")], defaultStyle, { background: "#f4f4f5", contentWidth: 480 }),
+    );
     expect(html).toContain("background-color:#f4f4f5");
     expect(html).toContain("max-width:480px");
   });

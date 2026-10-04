@@ -1,6 +1,6 @@
 import type { ComponentConfig } from "@puckeditor/core";
 import { Button as EmailButton, Text } from "@react-email/components";
-import { textCss } from "@/email/theme";
+import { applyOverride, noOverride, textCss, type TextOverride } from "@/email/theme";
 import {
   alignField,
   Box,
@@ -10,6 +10,7 @@ import {
   paletteColorField,
   safeHref,
   styleOf,
+  textOverrideField,
   type Align,
   type BoxProps,
 } from "../shared";
@@ -20,6 +21,7 @@ export type ButtonProps = BoxProps & {
   backgroundColor: string;
   textColor: string;
   align: Align;
+  typography: TextOverride;
 };
 
 // A call-to-action button. React Email's Button handles Outlook's padding quirks.
@@ -30,6 +32,7 @@ export const Button: ComponentConfig<ButtonProps> = {
     backgroundColor: paletteColorField("Button color"),
     textColor: paletteColorField("Text color"),
     align: alignField,
+    typography: textOverrideField("Label text"),
     ...boxFields,
   },
   defaultProps: {
@@ -38,16 +41,15 @@ export const Button: ComponentConfig<ButtonProps> = {
     backgroundColor: "#000000",
     textColor: "#ffffff",
     align: "center",
+    typography: noOverride,
     ...boxDefaults(8, 16),
   },
-  render: ({ label, url, backgroundColor, textColor, align, puck, spaceAbove, spaceBelow, background }) => {
-    const normal = styleOf(puck).text.normal;
+  render: ({ label, url, backgroundColor, textColor, align, typography, puck, spaceAbove, spaceBelow, background }) => {
+    // Bold label in the button's text color, unless the Label text settings say otherwise.
+    const base = { ...styleOf(puck).text.normal, bold: true, underline: false, color: colorOr(textColor, "#ffffff") };
     const css = {
-      ...textCss(normal),
-      color: colorOr(textColor, "#ffffff"),
+      ...textCss(applyOverride(base, typography)),
       backgroundColor: colorOr(backgroundColor, "#000000"),
-      fontWeight: 700,
-      textDecoration: "none",
       borderRadius: "4px",
       padding: "12px 24px",
       display: "inline-block",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderEmailHtml, type EmailData } from "@/email/render";
-import { defaultStyle } from "@/email/theme";
+import { defaultStyle, noOverride } from "@/email/theme";
 import { blocksConfig } from ".";
 import { safeHref, safeImageSrc } from "./shared";
 
@@ -35,13 +35,27 @@ describe("Title", () => {
 });
 
 describe("Navigation", () => {
+  const link = (label: string, url: string, extra: Record<string, unknown> = {}) => ({
+    label,
+    url,
+    boxColor: "",
+    typography: noOverride,
+    ...extra,
+  });
+
+  it("defaults to Menu, Reservations, Private events, evenly spaced", async () => {
+    const out = await html(block("Navigation"));
+    for (const label of ["Menu", "Reservations", "Private events"]) expect(out).toContain(label);
+    expect((out.match(/width="33.33/g) ?? []).length).toBe(3);
+  });
+
   it("renders safe links and skips unsafe or empty ones", async () => {
     const out = await html(
       block("Navigation", {
         links: [
-          { label: "Shop", url: "https://example.com/shop" },
-          { label: "Evil", url: "javascript:alert(1)" },
-          { label: "", url: "https://example.com/blank" },
+          link("Shop", "https://example.com/shop"),
+          link("Evil", "javascript:alert(1)"),
+          link("", "https://example.com/blank"),
         ],
       }),
     );
@@ -49,10 +63,55 @@ describe("Navigation", () => {
     expect(out).not.toContain("javascript:");
     expect(out).not.toContain("Evil");
     expect(out).not.toContain("example.com/blank");
+    expect(out).toContain('width="100%"');
+  });
+
+  it("lets one link have its own color and box", async () => {
+    const out = await html(
+      block("Navigation", {
+        look: "boxes",
+        links: [
+          link("Menu", "https://example.com/a", {
+            boxColor: "#0a7a3a",
+            typography: { ...noOverride, color: "#ffffff" },
+          }),
+          link("Reservations", "https://example.com/b"),
+        ],
+      }),
+    );
+    expect(out).toContain("background-color:#0a7a3a");
+    expect(out).toContain("color:#ffffff");
+    expect(out).toContain("background-color:#f4f4f5");
+  });
+
+  it("draws separators between links and a solid bar", async () => {
+    const two = [link("A", "https://a.com"), link("B", "https://b.com")];
+    const separated = await html(block("Navigation", { look: "separators", separatorColor: "#ff0000", links: two }));
+    expect((separated.match(/border-left:1px solid #ff0000/g) ?? []).length).toBe(1);
+    const bar = await html(block("Navigation", { look: "bar", barColor: "#123456", links: two }));
+    expect(bar).toContain("background-color:#123456");
+  });
+
+  it("applies link spacing, kept between 0 and 48px", async () => {
+    expect(await html(block("Navigation", { linkSpacing: 20 }))).toContain("padding:0 10px");
+    expect(await html(block("Navigation", { linkSpacing: 500 }))).toContain("padding:0 24px");
   });
 
   it("renders nothing with no links", async () => {
     expect(await html(block("Navigation", { links: [] }))).not.toContain("<a");
+  });
+});
+
+describe("text settings in the right tab", () => {
+  it("change only that block", async () => {
+    const out = await html(
+      block("Heading", { text: "Changed", typography: { ...noOverride, color: "#ff0000", italic: "on" } }),
+      block("Heading", { text: "Default" }),
+    );
+    const [changed, plain] = out.split("Default");
+    expect(changed).toContain("color:#ff0000");
+    expect(changed).toContain("font-style:italic");
+    expect(plain ?? "").not.toContain("color:#ff0000");
   });
 });
 
@@ -96,7 +155,12 @@ describe("Quote", () => {
 describe("Button", () => {
   it("renders a link with the chosen colors", async () => {
     const out = await html(
-      block("Button", { label: "RSVP", url: "https://example.com/rsvp", backgroundColor: "#0a7a3a", textColor: "#ffffff" }),
+      block("Button", {
+        label: "RSVP",
+        url: "https://example.com/rsvp",
+        backgroundColor: "#0a7a3a",
+        textColor: "#ffffff",
+      }),
     );
     expect(out).toContain('href="https://example.com/rsvp"');
     expect(out).toContain("RSVP");

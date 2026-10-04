@@ -4,30 +4,38 @@ import type { Config, Field } from "@puckeditor/core";
 import { blocksConfig, type BlockProps, type EmailRootProps } from "@/blocks";
 import { PaletteField } from "./palette-field";
 
-// Swap any field a block marked as a palette color for the swatch picker.
+// Swap any field a block marked as a palette color for the swatch picker,
+// including fields nested in groups (object) and lists (array).
 // Only the field's editor UI changes; the saved value is still a hex string.
+function upgradeField(field: Field): Field {
+  if (field.metadata?.palette) {
+    return {
+      type: "custom",
+      label: field.label,
+      render: ({ value, onChange }) => (
+        <PaletteField
+          label={field.label}
+          value={String(value ?? "")}
+          onChange={onChange}
+          allowNone={Boolean(field.metadata?.allowNone)}
+          noneLabel={field.metadata?.noneLabel}
+        />
+      ),
+    } satisfies Field<string>;
+  }
+  if (field.type === "object") return { ...field, objectFields: upgradeFields(field.objectFields) };
+  if (field.type === "array") return { ...field, arrayFields: upgradeFields(field.arrayFields) };
+  return field;
+}
+
+function upgradeFields<F extends object>(fields: F): F {
+  return Object.fromEntries(
+    Object.entries(fields as Record<string, Field>).map(([name, field]) => [name, upgradeField(field)]),
+  ) as F;
+}
+
 function withPaletteFields<C extends { fields?: unknown }>(component: C): C {
-  if (!component.fields) return component;
-  const fields = Object.fromEntries(
-    Object.entries(component.fields as Record<string, Field>).map(([name, field]) => [
-      name,
-      field.metadata?.palette
-        ? ({
-            type: "custom",
-            label: field.label,
-            render: ({ value, onChange }) => (
-              <PaletteField
-                label={field.label}
-                value={String(value ?? "")}
-                onChange={onChange}
-                allowNone={Boolean(field.metadata?.allowNone)}
-              />
-            ),
-          } satisfies Field<string>)
-        : field,
-    ]),
-  );
-  return { ...component, fields };
+  return component.fields ? { ...component, fields: upgradeFields(component.fields) } : component;
 }
 
 // The shared block list plus editor-only extras: palette swatches and the

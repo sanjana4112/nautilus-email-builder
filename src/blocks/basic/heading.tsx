@@ -1,7 +1,16 @@
 import type { ComponentConfig } from "@puckeditor/core";
 import { Heading as EmailHeading } from "@react-email/components";
-import { textCss, TEXT_STYLE_LABELS } from "@/email/theme";
-import { alignField, Box, boxDefaults, boxFields, styleOf, type Align, type BoxProps } from "../shared";
+import { applyOverride, noOverride, textCss, TEXT_STYLE_LABELS, type TextOverride } from "@/email/theme";
+import {
+  alignField,
+  Box,
+  boxDefaults,
+  boxFields,
+  styleOf,
+  textOverrideField,
+  type Align,
+  type BoxProps,
+} from "../shared";
 
 const HEADING_STYLES = ["title", "heading1", "heading2", "subtitle"] as const;
 type HeadingStyle = (typeof HEADING_STYLES)[number];
@@ -13,6 +22,7 @@ export type HeadingProps = BoxProps & {
   text: string;
   textStyle: HeadingStyle;
   align: Align;
+  typography: TextOverride;
 };
 
 // One block = its sidebar fields plus its React Email output. The same render
@@ -27,21 +37,28 @@ export const Heading: ComponentConfig<HeadingProps> = {
       options: HEADING_STYLES.map((value) => ({ value, label: TEXT_STYLE_LABELS[value] })),
     },
     align: alignField,
+    typography: textOverrideField(),
     ...boxFields,
   },
   defaultProps: {
     text: "Your heading",
     textStyle: "heading1",
     align: "left",
+    typography: noOverride,
     ...boxDefaults(0, 16),
   },
-  render: ({ text, textStyle, align, puck, spaceAbove, spaceBelow, background }) => {
+  render: ({ text, textStyle, align, typography, puck, spaceAbove, spaceBelow, background }) => {
     const { text: styles } = styleOf(puck);
     return (
       <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
         <EmailHeading
           as={TAGS[textStyle] ?? "h1"}
-          style={{ ...textCss(styles[textStyle] ?? styles.heading1), lineHeight: 1.25, textAlign: align, margin: 0 }}
+          style={{
+            ...textCss(applyOverride(styles[textStyle] ?? styles.heading1, typography)),
+            lineHeight: 1.25,
+            textAlign: align,
+            margin: 0,
+          }}
         >
           {text}
         </EmailHeading>
