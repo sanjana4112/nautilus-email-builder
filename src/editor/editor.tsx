@@ -6,6 +6,7 @@ import "@puckeditor/core/puck.css";
 import type { EmailData } from "@/email/render";
 import { defaultPage, defaultStyle, resolveStyle } from "@/email/theme";
 import { FieldGroup } from "./field-group";
+import { PreviewPanel } from "./preview";
 import { editorConfig } from "./puck-config";
 import { SendPanel } from "./send-panel";
 import { StylePanel } from "./style-panel";
@@ -18,7 +19,12 @@ const emptyEmail: EmailData = {
 // Defined once, outside the component: Puck rebuilds its internal state
 // whenever these objects change identity.
 const overrides = {
-  headerActions: () => <SendPanel />,
+  headerActions: () => (
+    <>
+      <PreviewPanel />
+      <SendPanel />
+    </>
+  ),
   // Grouped fields become collapsible sections in the right tab.
   fieldTypes: { object: FieldGroup },
 };
