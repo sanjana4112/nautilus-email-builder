@@ -59,6 +59,12 @@ describe("renderEmailHtml", () => {
     expect(html).toContain("max-width:480px");
   });
 
+  it("leaves the page background off when it's set to None", async () => {
+    const html = await renderEmailHtml(email([heading("Hi")], defaultStyle, { background: "" }));
+    expect(html).toContain('<body style="margin:0">');
+    expect(html).not.toContain("background-color:#ffffff");
+  });
+
   it("stretches content to the screen, capped at the content width", async () => {
     const html = await renderEmailHtml(email([heading("Hi")], defaultStyle, { contentWidth: 5000 }));
     expect(html).toContain("max-width:1600px;width:100%");

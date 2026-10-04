@@ -7,6 +7,7 @@ import {
   boxFields,
   Cell,
   colorOr,
+  fillOr,
   imageField,
   paletteColorField,
   safeHref,
@@ -49,8 +50,8 @@ export const Banner: ComponentConfig<BannerProps> = {
       type: "object",
       label: "Strip",
       objectFields: {
-        color: paletteColorField("Strip color"),
-        textColor: paletteColorField("Text color"),
+        color: paletteColorField("Strip color", { allowNone: true }),
+        textColor: paletteColorField("Text color", { allowNone: true, noneLabel: "Default color" }),
         // No min: Puck would drop the "4" in "48". The render keeps 32 to 160px.
         height: { type: "number", label: "Height", max: 160 },
       },
@@ -111,13 +112,15 @@ export const Banner: ComponentConfig<BannerProps> = {
     }
 
     // Text strip: center the line vertically within the chosen height.
-    const base = { ...styleOf(puck).text.normal, bold: true, color: colorOr(strip?.textColor, "#ffffff") };
+    const normal = styleOf(puck).text.normal;
+    const color = strip?.textColor === "" ? normal.color : colorOr(strip?.textColor, "#ffffff");
+    const base = { ...normal, bold: true, color };
     const css = { ...textCss(applyOverride(base, typography)), margin: 0, textAlign: "center" as const };
     const height = Math.max(32, Math.min(160, Number(strip?.height) || 64));
     return (
       <Box {...box}>
         <Cell
-          background={colorOr(strip?.color, "#000000")}
+          background={fillOr(strip?.color, "#000000")}
           style={{ height, padding: "0 24px", textAlign: "center", verticalAlign: "middle" }}
         >
           {href ? (

@@ -51,7 +51,7 @@ export const blocksConfig: Config<BlockProps, EmailRootProps> = {
     fields: {
       title: { type: "text", label: "Title" },
       subject: { type: "text", label: "Subject" },
-      background: paletteColorField("Page background"),
+      background: paletteColorField("Page background", { allowNone: true }),
       // No min: Puck drops keystrokes below it, so "800" couldn't be typed (the
       // "8" is under 320). resolvePage keeps the real 320 to 1600px range.
       contentWidth: {

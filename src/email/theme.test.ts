@@ -6,6 +6,7 @@ import {
   isHexColor,
   nextPaletteColor,
   noOverride,
+  parseHex,
   resolvePage,
   resolveStyle,
   textCss,
@@ -42,6 +43,10 @@ describe("resolveStyle", () => {
     expect(resolveStyle({ text: { heading1: { font: "Comic Sans" } } }).text.heading1.font).toBe("Georgia");
   });
 
+  it("keeps None (no text color) as a real choice", () => {
+    expect(resolveStyle({ text: { normal: { color: "" } } }).text.normal.color).toBe("");
+  });
+
   it("keeps a text color even if it isn't in the palette", () => {
     const style = resolveStyle({ palette: ["#000000"], text: { heading1: { color: "#0a7a3a" } } });
     expect(style.text.heading1.color).toBe("#0a7a3a");
@@ -62,6 +67,10 @@ describe("resolvePage", () => {
 
   it("ignores a bad background color", () => {
     expect(resolvePage({ background: "red; display:none" }).background).toBe("#ffffff");
+  });
+
+  it("keeps None (no page color) as a real choice", () => {
+    expect(resolvePage({ background: "" }).background).toBe("");
   });
 
   it("keeps content width between 320 and 1600px", () => {
@@ -123,7 +132,25 @@ describe("applyOverride", () => {
   });
 });
 
+describe("parseHex", () => {
+  it.each([
+    ["0a7a3a", "#0a7a3a"],
+    ["#0A7A3A", "#0a7a3a"],
+    ["  0a7a3a ", "#0a7a3a"],
+    ["0a7", "#00aa77"],
+    ["#fff", "#ffffff"],
+  ])("reads %j as %j", (input, expected) => expect(parseHex(input)).toBe(expected));
+
+  it.each(["", "0a7a3", "0a7a3a0", "zzzzzz", "red", "#12345g"])("rejects %j", (input) =>
+    expect(parseHex(input)).toBeNull(),
+  );
+});
+
 describe("textCss", () => {
+  it("leaves color out when it's None, so the inbox's own text color shows", () => {
+    expect(textCss({ ...defaultStyle.text.normal, color: "" })).not.toHaveProperty("color", expect.anything());
+  });
+
   it("turns a text style into inline CSS", () => {
     expect(textCss({ font: "Georgia", size: 28, bold: true, italic: true, underline: true, color: "#0a7a3a" })).toEqual(
       {

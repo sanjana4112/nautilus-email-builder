@@ -58,7 +58,7 @@ export async function renderEmailHtml(data: EmailData): Promise<string> {
       <Head>
         <style>{RESPONSIVE_CSS}</style>
       </Head>
-      <Body style={{ backgroundColor: page.background, margin: 0 }}>
+      <Body style={{ backgroundColor: page.background || undefined, margin: 0 }}>
         <EmailFrame page={page}>{renderBlocks(data.content, puck, 0)}</EmailFrame>
       </Body>
     </Html>,

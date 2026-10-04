@@ -7,6 +7,7 @@ import {
   boxDefaults,
   boxFields,
   colorOr,
+  fillOr,
   paletteColorField,
   safeHref,
   styleOf,
@@ -17,6 +18,7 @@ import {
 type NavLook = "plain" | "separators" | "boxes" | "bar";
 
 type NavStyle = {
+  arrangement: "spread" | "grouped";
   look: NavLook;
   separatorColor: string;
   barColor: string;
@@ -30,7 +32,13 @@ export type NavigationProps = BoxProps & {
 };
 
 const DEFAULT_BOX = "#f4f4f5";
-const defaultStyle: NavStyle = { look: "plain", separatorColor: "#000000", barColor: "#000000", linkSpacing: 8 };
+const defaultNavStyle: NavStyle = {
+  arrangement: "spread",
+  look: "plain",
+  separatorColor: "#000000",
+  barColor: "#000000",
+  linkSpacing: 24,
+};
 
 // A row of links spread evenly across the full width. Each link can have its
 // own box and link color; Typography applies to all links.
@@ -52,6 +60,14 @@ export const Navigation: ComponentConfig<NavigationProps> = {
       type: "object",
       label: "Style",
       objectFields: {
+        arrangement: {
+          type: "radio",
+          label: "Arrangement",
+          options: [
+            { value: "spread", label: "Spread across width" },
+            { value: "grouped", label: "Grouped in center" },
+          ],
+        },
         look: {
           type: "select",
           label: "Look",
@@ -63,7 +79,7 @@ export const Navigation: ComponentConfig<NavigationProps> = {
           ],
         },
         separatorColor: paletteColorField("Separator color"),
-        barColor: paletteColorField("Bar color"),
+        barColor: paletteColorField("Bar color", { allowNone: true }),
         linkSpacing: { type: "number", label: "Link spacing", min: 0, max: 48 },
       },
     },
@@ -76,12 +92,13 @@ export const Navigation: ComponentConfig<NavigationProps> = {
       { label: "Reservations", url: "https://example.com/reservations", boxColor: "", linkColor: "" },
       { label: "Private events", url: "https://example.com/private-events", boxColor: "", linkColor: "" },
     ],
-    style: defaultStyle,
+    style: defaultNavStyle,
     typography: noOverride,
     ...boxDefaults(8, 8),
   },
   render: ({ links, style, typography, puck, box }) => {
-    const { look, separatorColor, barColor, linkSpacing } = style ?? defaultStyle;
+    const { arrangement, look, separatorColor, barColor, linkSpacing } = { ...defaultNavStyle, ...style };
+    const spread = arrangement !== "grouped";
     const items = (links ?? []).flatMap((link) => {
       const href = safeHref(link.url);
       return href && link.label ? [{ ...link, href }] : [];
@@ -91,18 +108,18 @@ export const Navigation: ComponentConfig<NavigationProps> = {
     const allLinks = applyOverride(styleOf(puck).text.normal, typography);
     const gap = Math.max(0, Math.min(48, Number(linkSpacing) || 0));
     return (
-      <Box {...box}>
+      // The solid bar is the block's own background, so it runs edge to edge.
+      <Box {...box} background={look === "bar" ? (fillOr(barColor, "#000000") ?? "") : box?.background}>
+        {/* Spread: equal slots across the full width. Grouped: links sit
+            together in the center, with Link spacing between them. */}
         <table
           role="presentation"
-          width="100%"
+          align="center"
+          width={spread ? "100%" : undefined}
           cellPadding={0}
           cellSpacing={0}
           border={0}
-          style={{
-            width: "100%",
-            tableLayout: "fixed",
-            backgroundColor: look === "bar" ? colorOr(barColor, "#000000") : undefined,
-          }}
+          style={spread ? { width: "100%", tableLayout: "fixed" } : { margin: "0 auto" }}
         >
           <tbody>
             <tr>
@@ -121,7 +138,7 @@ export const Navigation: ComponentConfig<NavigationProps> = {
                     </td>
                   )}
                   <td
-                    width={`${100 / items.length}%`}
+                    width={spread ? `${100 / items.length}%` : undefined}
                     style={{ padding: `0 ${gap / 2}px`, textAlign: "center", verticalAlign: "middle" }}
                   >
                     <Link

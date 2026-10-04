@@ -7,6 +7,7 @@ import {
   boxDefaults,
   boxFields,
   colorOr,
+  fillOr,
   paletteColorField,
   safeHref,
   styleOf,
@@ -29,8 +30,8 @@ export const Button: ComponentConfig<ButtonProps> = {
   fields: {
     label: { type: "text", label: "Label" },
     url: { type: "text", label: "Link" },
-    backgroundColor: paletteColorField("Button color"),
-    textColor: paletteColorField("Text color"),
+    backgroundColor: paletteColorField("Button color", { allowNone: true }),
+    textColor: paletteColorField("Text color", { allowNone: true, noneLabel: "Default color" }),
     align: alignField,
     typography: textOverrideField("Label text"),
     ...boxFields,
@@ -45,11 +46,14 @@ export const Button: ComponentConfig<ButtonProps> = {
     ...boxDefaults(8, 16),
   },
   render: ({ label, url, backgroundColor, textColor, align, typography, puck, box }) => {
-    // Bold label in the button's text color, unless the Label text settings say otherwise.
-    const base = { ...styleOf(puck).text.normal, bold: true, underline: false, color: colorOr(textColor, "#ffffff") };
+    // Bold label in the button's text color ("" = the Normal text color), unless
+    // the Label text settings say otherwise.
+    const normal = styleOf(puck).text.normal;
+    const color = textColor === "" ? normal.color : colorOr(textColor, "#ffffff");
+    const base = { ...normal, bold: true, underline: false, color };
     const css = {
       ...textCss(applyOverride(base, typography)),
-      backgroundColor: colorOr(backgroundColor, "#000000"),
+      backgroundColor: fillOr(backgroundColor, "#000000"),
       borderRadius: "4px",
       padding: "12px 24px",
       display: "inline-block",

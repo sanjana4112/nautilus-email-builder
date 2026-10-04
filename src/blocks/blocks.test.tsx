@@ -105,6 +105,26 @@ describe("Navigation", () => {
     expect(await html(block("Navigation", { style: style({ linkSpacing: 500 }) }))).toContain("padding:0 24px");
   });
 
+  it("spreads links across the width, or groups them in the center", async () => {
+    const spread = await html(block("Navigation"));
+    expect(spread).toContain("table-layout:fixed");
+    const grouped = await html(block("Navigation", { style: style({ arrangement: "grouped", linkSpacing: 40 }) }));
+    expect(grouped).not.toContain("table-layout:fixed");
+    expect(grouped).not.toMatch(/width="33.33/);
+    expect(grouped).toContain("padding:0 20px");
+  });
+
+  it("paints the solid bar edge to edge, as the block's background", async () => {
+    const out = await html(block("Navigation", { style: style({ look: "bar", barColor: "#123456" }) }));
+    // The bar color sits on the outer block table, around the 24px side padding.
+    expect(out).toMatch(/background-color:#123456[^>]*>\s*<tbody>\s*<tr>\s*<td style="padding:8px 24px 8px"/);
+  });
+
+  it("lets the bar color be removed", async () => {
+    const out = await html(block("Navigation", { style: style({ look: "bar", barColor: "" }) }));
+    expect(out).not.toContain("background-color:#000000");
+  });
+
   it("renders nothing with no links", async () => {
     expect(await html(block("Navigation", { links: [] }))).not.toContain("<a");
   });
@@ -202,6 +222,53 @@ describe("SocialLinks", () => {
 
   it("renders nothing with no networks", async () => {
     expect(await html(block("SocialLinks", { links: [] }))).not.toContain("<a");
+  });
+});
+
+describe("removing text colors", () => {
+  it("Button text color None uses the Normal text color", async () => {
+    const style = {
+      ...defaultStyle,
+      text: { ...defaultStyle.text, normal: { ...defaultStyle.text.normal, color: "#0a7a3a" } },
+    };
+    const out = await renderEmailHtml({
+      content: [block("Button", { textColor: "" })],
+      root: { props: { title: "", subject: "", style } },
+    });
+    // Match the text color property, not "background-color".
+    expect(out).toMatch(/[";]color:#0a7a3a/);
+    expect(out).not.toMatch(/[";]color:#ffffff/);
+  });
+
+  it("a Style tab text color of None sets no color at all", async () => {
+    const style = {
+      ...defaultStyle,
+      text: { ...defaultStyle.text, heading1: { ...defaultStyle.text.heading1, color: "" } },
+    };
+    const out = await renderEmailHtml({
+      content: [block("Heading", { text: "Plain" })],
+      root: { props: { title: "", subject: "", style } },
+    });
+    expect(out).toMatch(/<h1 style="(?![^"]*\bcolor:)[^"]*">Plain<\/h1>/);
+  });
+});
+
+describe("removing fill colors", () => {
+  it("Button with no color shows just its label", async () => {
+    const out = await html(block("Button", { backgroundColor: "" }));
+    expect(out).toContain("Get tickets");
+    expect(out).not.toContain("background-color:#000000");
+  });
+
+  it("Banner strip with no color is transparent", async () => {
+    const out = await html(block("Banner", { strip: { color: "", textColor: "#000000", height: 64 } }));
+    expect(out).toContain("Reservations open Friday");
+    expect(out).not.toContain("background-color:#000000");
+  });
+
+  it("a broken fill color still falls back to the default", async () => {
+    const out = await html(block("Button", { backgroundColor: "red;display:none" }));
+    expect(out).toContain("background-color:#000000");
   });
 });
 

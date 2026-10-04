@@ -83,6 +83,13 @@ export function styleOf(puck: PuckContext): EmailStyle {
   return resolveStyle(puck.metadata.style);
 }
 
+// For fill colors that can be removed: "" means None (no fill, transparent);
+// a missing or broken value falls back to the default.
+export function fillOr(value: unknown, fallback: string): string | undefined {
+  if (value === "") return undefined;
+  return isHexColor(value) ? value : fallback;
+}
+
 export function colorOr<T extends string | undefined>(value: unknown, fallback: T): string | T {
   return isHexColor(value) ? value : fallback;
 }

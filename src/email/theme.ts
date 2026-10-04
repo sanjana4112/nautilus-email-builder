@@ -91,6 +91,15 @@ export function isHexColor(value: unknown): value is string {
   return typeof value === "string" && HEX.test(value);
 }
 
+// For typed colors: accepts "0a7a3a", "#0A7A3A", or the short "0a7", and
+// returns "#0a7a3a", or null if it isn't a color code.
+export function parseHex(input: string): string | null {
+  const raw = input.trim().replace(/^#/, "").toLowerCase();
+  const full = /^[0-9a-f]{3}$/.test(raw) ? [...raw].map((c) => c + c).join("") : raw;
+  const hex = `#${full}`;
+  return isHexColor(hex) ? hex : null;
+}
+
 function color(value: unknown, fallback: string): string {
   return isHexColor(value) ? value.toLowerCase() : fallback;
 }
@@ -131,7 +140,8 @@ export function resolveStyle(raw: unknown): EmailStyle {
       bold: flag(t.bold, fallback.bold),
       italic: flag(t.italic, fallback.italic),
       underline: flag(t.underline, fallback.underline),
-      color: color(t.color, fallback.color),
+      // "" = None: no color set, so the inbox uses its own text color.
+      color: t.color === "" ? "" : color(t.color, fallback.color),
     };
   }
 
@@ -145,7 +155,8 @@ export function resolveStyle(raw: unknown): EmailStyle {
 export function resolvePage(raw: unknown): PageSettings {
   const page = (typeof raw === "object" && raw !== null ? raw : {}) as Partial<Record<keyof PageSettings, unknown>>;
   return {
-    background: color(page.background, defaultPage.background),
+    // "" = None: no page color, so the inbox's own background shows.
+    background: page.background === "" ? "" : color(page.background, defaultPage.background),
     contentWidth: clamp(page.contentWidth, LIMITS.contentWidth, defaultPage.contentWidth),
   };
 }
@@ -227,6 +238,6 @@ export function textCss(t: TextStyle) {
     fontWeight: t.bold ? 700 : 400,
     fontStyle: t.italic ? "italic" : "normal",
     textDecoration: t.underline ? "underline" : "none",
-    color: t.color,
+    color: t.color || undefined,
   } as const;
 }

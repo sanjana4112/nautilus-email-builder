@@ -18,7 +18,7 @@ export const RESPONSIVE_CSS = `
 // default; a narrower width lets the background show at the sides.
 export function EmailFrame({ page, children }: { page: PageSettings; children?: ReactNode }) {
   return (
-    <Section style={{ backgroundColor: page.background }}>
+    <Section style={{ backgroundColor: page.background || undefined }}>
       <style>{RESPONSIVE_CSS}</style>
       <Container style={{ width: "100%", maxWidth: `${page.contentWidth}px`, margin: "0 auto" }}>{children}</Container>
     </Section>

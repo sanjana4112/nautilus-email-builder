@@ -141,7 +141,13 @@ function TextStyleEditor({
           </div>
         </Row>
         <Row label="Color">
-          <ColorChoice value={value.color} palette={palette} onChange={(color) => onChange({ color })} />
+          <ColorChoice
+            value={value.color}
+            palette={palette}
+            onChange={(color) => onChange({ color })}
+            allowNone
+            noneLabel="Inbox default"
+          />
         </Row>
       </div>
     </details>
