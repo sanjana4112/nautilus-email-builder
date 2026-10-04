@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Puck, type Plugin } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
 import type { EmailData } from "@/email/render";
-import { defaultPage, defaultStyle, resolveStyle } from "@/email/theme";
+import { defaultPage, defaultStyle, EMAIL_WIDTH, resolveStyle } from "@/email/theme";
 import { editorConfig } from "./puck-config";
 import { SendPanel } from "./send-panel";
 import { StylePanel } from "./style-panel";
@@ -30,6 +30,13 @@ const plugins: Plugin[] = [
   },
 ];
 
+// Preview widths: a standard 600px email and a typical phone. Puck zooms the
+// canvas so the chosen width fills the editor.
+const viewports = [
+  { width: EMAIL_WIDTH, label: "Desktop", icon: "Monitor" as const },
+  { width: 375, label: "Mobile", icon: "Smartphone" as const },
+];
+
 export function Editor() {
   // The saved style, kept here so Puck can hand it to every block as metadata.
   const [rawStyle, setRawStyle] = useState<unknown>(emptyEmail.root.props?.style);
@@ -40,6 +47,7 @@ export function Editor() {
       config={editorConfig}
       data={emptyEmail}
       plugins={plugins}
+      viewports={viewports}
       overrides={overrides}
       metadata={metadata}
       // Only the style reference matters here; React skips the update when it hasn't changed.

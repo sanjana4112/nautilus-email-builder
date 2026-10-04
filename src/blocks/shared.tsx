@@ -1,6 +1,5 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { NumberField, PuckContext, SelectField, TextField } from "@puckeditor/core";
-import { Section } from "@react-email/components";
 import { LIMITS, isHexColor, resolveSpace, resolveStyle, type EmailStyle } from "@/email/theme";
 
 // Helpers used by more than one block. Server-safe: no browser-only code.
@@ -83,13 +82,41 @@ export function Box({
 }: BoxProps & { inset?: boolean; children: ReactNode }) {
   const side = inset ? INSET : 0;
   return (
-    <Section
-      style={{
-        backgroundColor: colorOr(background, undefined),
-        padding: `${resolveSpace(spaceAbove, 0)}px ${side}px ${resolveSpace(spaceBelow, 0)}px`,
-      }}
+    <Cell
+      background={colorOr(background, undefined)}
+      style={{ padding: `${resolveSpace(spaceAbove, 0)}px ${side}px ${resolveSpace(spaceBelow, 0)}px` }}
     >
       {children}
-    </Section>
+    </Cell>
+  );
+}
+
+// A full-width, one-cell table. Padding and borders go on the cell (<td>),
+// the only place every inbox applies them. (On a <table> they also vanish in
+// the editor, where Tailwind's reset collapses table borders.)
+export function Cell({
+  background,
+  style,
+  children,
+}: {
+  background?: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
+  return (
+    <table
+      role="presentation"
+      width="100%"
+      cellPadding={0}
+      cellSpacing={0}
+      border={0}
+      style={{ width: "100%", backgroundColor: background }}
+    >
+      <tbody>
+        <tr>
+          <td style={style}>{children}</td>
+        </tr>
+      </tbody>
+    </table>
   );
 }

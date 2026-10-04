@@ -26,14 +26,10 @@ describe("every block", () => {
 });
 
 describe("Title", () => {
-  it("shows the logo and brand name", async () => {
-    const out = await html(block("Title", { logoUrl: "https://cdn.example.com/logo.png", brandName: "Supper Club" }));
-    expect(out).toContain('src="https://cdn.example.com/logo.png"');
+  it("shows the title in the Title text style", async () => {
+    const out = await html(block("Title", { title: "Supper Club" }));
     expect(out).toContain("Supper Club");
-  });
-
-  it("leaves out a logo that isn't https", async () => {
-    const out = await html(block("Title", { logoUrl: "http://example.com/logo.png" }));
+    expect(out).toContain("font-size:36px");
     expect(out).not.toContain("<img");
   });
 });

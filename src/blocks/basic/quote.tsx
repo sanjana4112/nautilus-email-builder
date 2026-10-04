@@ -1,7 +1,7 @@
 import type { ComponentConfig } from "@puckeditor/core";
-import { Section, Text } from "@react-email/components";
+import { Text } from "@react-email/components";
 import { textCss } from "@/email/theme";
-import { Box, boxDefaults, boxFields, colorOr, paletteColorField, styleOf, type BoxProps } from "../shared";
+import { Box, boxDefaults, Cell, boxFields, colorOr, paletteColorField, styleOf, type BoxProps } from "../shared";
 
 export type QuoteProps = BoxProps & {
   quote: string;
@@ -27,10 +27,10 @@ export const Quote: ComponentConfig<QuoteProps> = {
     const { subtitle, caption } = styleOf(puck).text;
     return (
       <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
-        <Section style={{ borderLeft: `4px solid ${colorOr(accentColor, "#000000")}`, padding: "4px 0 4px 16px" }}>
+        <Cell style={{ borderLeft: `4px solid ${colorOr(accentColor, "#000000")}`, padding: "4px 0 4px 16px" }}>
           <Text style={{ ...textCss(subtitle), lineHeight: 1.4, margin: 0 }}>{quote}</Text>
           {attribution && <Text style={{ ...textCss(caption), margin: "8px 0 0" }}>{attribution}</Text>}
-        </Section>
+        </Cell>
       </Box>
     );
   },

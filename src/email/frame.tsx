@@ -8,7 +8,7 @@ import type { PageSettings } from "./theme";
 export function EmailFrame({ page, children }: { page: PageSettings; children?: ReactNode }) {
   return (
     <Section style={{ backgroundColor: page.background }}>
-      <Container style={{ width: "100%", maxWidth: `${page.contentWidth}px` }}>{children}</Container>
+      <Container style={{ width: "100%", maxWidth: `${page.contentWidth}px`, margin: "0 auto" }}>{children}</Container>
     </Section>
   );
 }
