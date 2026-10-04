@@ -16,6 +16,7 @@
     "@temporalio/client": "^1.15.0",
     "@temporalio/worker": "^1.15.0",
     "@temporalio/workflow": "^1.15.0",
+    "@vercel/blob": "^2.8.0",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
