@@ -44,7 +44,12 @@ export const blocksConfig: Config<BlockProps, EmailRootProps> = {
       title: { type: "text", label: "Title" },
       subject: { type: "text", label: "Subject" },
       background: paletteColorField("Page background"),
-      contentWidth: { type: "number", label: "Content width (px)", min: LIMITS.contentWidth.min, max: LIMITS.contentWidth.max },
+      contentWidth: {
+        type: "number",
+        label: "Content width",
+        min: LIMITS.contentWidth.min,
+        max: LIMITS.contentWidth.max,
+      },
     },
     // Draws the canvas inside the same frame as the sent email.
     render: ({ children, ...page }) => createElement(EmailFrame, { page: resolvePage(page) }, children),

@@ -43,12 +43,12 @@ export const BodyCopy: ComponentConfig<BodyCopyProps> = {
     typography: noOverride,
     ...boxDefaults(0, 16),
   },
-  render: ({ text, textStyle, align, typography, puck, spaceAbove, spaceBelow, background }) => {
+  render: ({ text, textStyle, align, typography, puck, box }) => {
     const style = styleOf(puck).text[textStyle] ?? styleOf(puck).text.normal;
     // <br> instead of CSS white-space, which some inboxes ignore.
     const lines = (text ?? "").split("\n");
     return (
-      <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
+      <Box {...box}>
         <Text style={{ ...textCss(applyOverride(style, typography)), lineHeight: 1.5, textAlign: align, margin: 0 }}>
           {lines.map((line, i) => (
             <Fragment key={i}>

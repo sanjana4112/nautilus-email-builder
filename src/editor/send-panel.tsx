@@ -52,7 +52,7 @@ export function SendPanel() {
           <h2 className="text-lg font-semibold">Send email</h2>
           <p className="text-sm">
             <span className="text-zinc-500">Subject: </span>
-            {subject || <span className="text-red-600">Add a subject first (Page settings in the sidebar)</span>}
+            {subject || <span className="text-red-600">Add a subject in Page settings first</span>}
           </p>
           <label className="flex flex-col gap-1 text-sm">
             To

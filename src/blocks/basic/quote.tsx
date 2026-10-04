@@ -25,7 +25,7 @@ export type QuoteProps = BoxProps & {
 export const Quote: ComponentConfig<QuoteProps> = {
   fields: {
     quote: { type: "textarea", label: "Quote" },
-    attribution: { type: "text", label: "Attribution (optional)" },
+    attribution: { type: "text", label: "Attribution" },
     accentColor: paletteColorField("Accent bar color"),
     quoteTypography: textOverrideField("Quote text"),
     attributionTypography: textOverrideField("Attribution text"),
@@ -39,20 +39,10 @@ export const Quote: ComponentConfig<QuoteProps> = {
     attributionTypography: noOverride,
     ...boxDefaults(0, 16),
   },
-  render: ({
-    quote,
-    attribution,
-    accentColor,
-    quoteTypography,
-    attributionTypography,
-    puck,
-    spaceAbove,
-    spaceBelow,
-    background,
-  }) => {
+  render: ({ quote, attribution, accentColor, quoteTypography, attributionTypography, puck, box }) => {
     const { subtitle, caption } = styleOf(puck).text;
     return (
-      <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
+      <Box {...box}>
         <Cell style={{ borderLeft: `4px solid ${colorOr(accentColor, "#000000")}`, padding: "4px 0 4px 16px" }}>
           <Text style={{ ...textCss(applyOverride(subtitle, quoteTypography)), lineHeight: 1.4, margin: 0 }}>
             {quote}

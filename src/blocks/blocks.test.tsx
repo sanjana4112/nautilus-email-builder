@@ -39,7 +39,7 @@ describe("Navigation", () => {
     label,
     url,
     boxColor: "",
-    typography: noOverride,
+    linkColor: "",
     ...extra,
   });
 
@@ -66,15 +66,20 @@ describe("Navigation", () => {
     expect(out).toContain('width="100%"');
   });
 
+  const style = (extra: Record<string, unknown>) => ({
+    look: "plain",
+    separatorColor: "#000000",
+    barColor: "#000000",
+    linkSpacing: 8,
+    ...extra,
+  });
+
   it("lets one link have its own color and box", async () => {
     const out = await html(
       block("Navigation", {
-        look: "boxes",
+        style: style({ look: "boxes" }),
         links: [
-          link("Menu", "https://example.com/a", {
-            boxColor: "#0a7a3a",
-            typography: { ...noOverride, color: "#ffffff" },
-          }),
+          link("Menu", "https://example.com/a", { boxColor: "#0a7a3a", linkColor: "#ffffff" }),
           link("Reservations", "https://example.com/b"),
         ],
       }),
@@ -86,15 +91,17 @@ describe("Navigation", () => {
 
   it("draws separators between links and a solid bar", async () => {
     const two = [link("A", "https://a.com"), link("B", "https://b.com")];
-    const separated = await html(block("Navigation", { look: "separators", separatorColor: "#ff0000", links: two }));
+    const separated = await html(
+      block("Navigation", { style: style({ look: "separators", separatorColor: "#ff0000" }), links: two }),
+    );
     expect((separated.match(/border-left:1px solid #ff0000/g) ?? []).length).toBe(1);
-    const bar = await html(block("Navigation", { look: "bar", barColor: "#123456", links: two }));
+    const bar = await html(block("Navigation", { style: style({ look: "bar", barColor: "#123456" }), links: two }));
     expect(bar).toContain("background-color:#123456");
   });
 
   it("applies link spacing, kept between 0 and 48px", async () => {
-    expect(await html(block("Navigation", { linkSpacing: 20 }))).toContain("padding:0 10px");
-    expect(await html(block("Navigation", { linkSpacing: 500 }))).toContain("padding:0 24px");
+    expect(await html(block("Navigation", { style: style({ linkSpacing: 20 }) }))).toContain("padding:0 10px");
+    expect(await html(block("Navigation", { style: style({ linkSpacing: 500 }) }))).toContain("padding:0 24px");
   });
 
   it("renders nothing with no links", async () => {

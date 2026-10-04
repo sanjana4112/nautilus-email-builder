@@ -29,10 +29,7 @@ export const alignField: SelectField = {
 // Here it is a plain text field, so the server never loads editor code.
 // allowNone adds a swatch saved as "": transparent for backgrounds, or
 // "use the default" for text (noneLabel names it in the editor).
-export function paletteColorField(
-  label: string,
-  { allowNone = false, noneLabel = "None (transparent)" } = {},
-): TextField {
+export function paletteColorField(label: string, { allowNone = false, noneLabel = "None" } = {}): TextField {
   return { type: "text", label, metadata: { palette: true, allowNone, noneLabel } };
 }
 
@@ -50,7 +47,7 @@ const toggleField = (label: string): SelectField => ({
 
 // A group of text settings that change only this block (or one link).
 // Every value starts at "Default", meaning the Style tab's text style.
-export function textOverrideField(label = "Text"): ObjectField<TextOverride> {
+export function textOverrideField(label = "Typography"): ObjectField<TextOverride> {
   return {
     type: "object",
     label,
@@ -63,7 +60,7 @@ export function textOverrideField(label = "Text"): ObjectField<TextOverride> {
           ...(Object.keys(EMAIL_SAFE_FONTS) as FontName[]).map((f) => ({ value: f, label: f })),
         ],
       },
-      size: { type: "number", label: "Size (px, blank = default)", ...LIMITS.fontSize },
+      size: { type: "number", label: "Size", ...LIMITS.fontSize },
       bold: toggleField("Bold"),
       italic: toggleField("Italic"),
       underline: toggleField("Underline"),
@@ -98,24 +95,31 @@ export function safeImageSrc(url: unknown): string | undefined {
 
 // --- The box every block sits in -------------------------------------------
 
-// Every block gets these: spacing around it and an optional background
-// (transparent unless a color is picked).
-export type BoxProps = {
+// Every block gets these, grouped under "Spacing & background" in the right
+// tab: spacing around it and a background that is transparent unless picked.
+export type BoxSettings = {
   spaceAbove: number;
   spaceBelow: number;
   background: string;
 };
+export type BoxProps = { box: BoxSettings };
 
 const spaceField = (label: string): NumberField => ({ type: "number", label, ...LIMITS.space });
 
-export const boxFields = {
-  spaceAbove: spaceField("Space above (px)"),
-  spaceBelow: spaceField("Space below (px)"),
-  background: paletteColorField("Block background", { allowNone: true }),
+export const boxFields: { box: ObjectField<BoxSettings> } = {
+  box: {
+    type: "object",
+    label: "Spacing & background",
+    objectFields: {
+      spaceAbove: spaceField("Space above"),
+      spaceBelow: spaceField("Space below"),
+      background: paletteColorField("Background", { allowNone: true }),
+    },
+  },
 };
 
 export function boxDefaults(spaceAbove = 0, spaceBelow = 16): BoxProps {
-  return { spaceAbove, spaceBelow, background: "" };
+  return { box: { spaceAbove, spaceBelow, background: "" } };
 }
 
 // Side padding for text, so it doesn't touch the edge of the email.
@@ -128,7 +132,7 @@ export function Box({
   background,
   inset = true,
   children,
-}: BoxProps & { inset?: boolean; children: ReactNode }) {
+}: Partial<BoxSettings> & { inset?: boolean; children: ReactNode }) {
   const side = inset ? INSET : 0;
   return (
     <Cell

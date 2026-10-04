@@ -47,10 +47,10 @@ export const Heading: ComponentConfig<HeadingProps> = {
     typography: noOverride,
     ...boxDefaults(0, 16),
   },
-  render: ({ text, textStyle, align, typography, puck, spaceAbove, spaceBelow, background }) => {
+  render: ({ text, textStyle, align, typography, puck, box }) => {
     const { text: styles } = styleOf(puck);
     return (
-      <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
+      <Box {...box}>
         <EmailHeading
           as={TAGS[textStyle] ?? "h1"}
           style={{

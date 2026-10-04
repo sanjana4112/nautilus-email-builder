@@ -15,19 +15,24 @@ import {
 
 type NavLook = "plain" | "separators" | "boxes" | "bar";
 
-export type NavigationProps = BoxProps & {
-  links: { label: string; url: string; boxColor: string; typography: TextOverride }[];
+type NavStyle = {
   look: NavLook;
   separatorColor: string;
   barColor: string;
   linkSpacing: number;
+};
+
+export type NavigationProps = BoxProps & {
+  links: { label: string; url: string; boxColor: string; linkColor: string }[];
+  style: NavStyle;
   typography: TextOverride;
 };
 
 const DEFAULT_BOX = "#f4f4f5";
+const defaultStyle: NavStyle = { look: "plain", separatorColor: "#000000", barColor: "#000000", linkSpacing: 8 };
 
 // A row of links spread evenly across the full width. Each link can have its
-// own box color and text settings; the block's Text settings apply to all.
+// own box and link color; Typography applies to all links.
 export const Navigation: ComponentConfig<NavigationProps> = {
   fields: {
     links: {
@@ -35,54 +40,47 @@ export const Navigation: ComponentConfig<NavigationProps> = {
       label: "Links",
       arrayFields: {
         label: { type: "text", label: "Label" },
-        url: { type: "text", label: "URL (https:// or mailto:)" },
-        boxColor: paletteColorField("Box color (Boxes look)", { allowNone: true, noneLabel: "Default box" }),
-        typography: textOverrideField("Text (this link only)"),
+        url: { type: "text", label: "Link" },
+        boxColor: paletteColorField("Box color", { allowNone: true, noneLabel: "Default box" }),
+        linkColor: paletteColorField("Link color", { allowNone: true, noneLabel: "Default color" }),
       },
-      defaultItemProps: { label: "Link", url: "https://", boxColor: "", typography: noOverride },
+      defaultItemProps: { label: "Link", url: "https://", boxColor: "", linkColor: "" },
       getItemSummary: (item) => item.label || "Link",
     },
-    look: {
-      type: "select",
-      label: "Look",
-      options: [
-        { value: "plain", label: "Plain links" },
-        { value: "separators", label: "Separator bars" },
-        { value: "boxes", label: "Colored box per link" },
-        { value: "bar", label: "One solid bar" },
-      ],
+    style: {
+      type: "object",
+      label: "Style",
+      objectFields: {
+        look: {
+          type: "select",
+          label: "Look",
+          options: [
+            { value: "plain", label: "Plain links" },
+            { value: "separators", label: "Separator bars" },
+            { value: "boxes", label: "Colored box per link" },
+            { value: "bar", label: "One solid bar" },
+          ],
+        },
+        separatorColor: paletteColorField("Separator color"),
+        barColor: paletteColorField("Bar color"),
+        linkSpacing: { type: "number", label: "Link spacing", min: 0, max: 48 },
+      },
     },
-    separatorColor: paletteColorField("Separator color"),
-    barColor: paletteColorField("Bar color"),
-    linkSpacing: { type: "number", label: "Link spacing (px)", min: 0, max: 48 },
-    typography: textOverrideField("Text (all links)"),
+    typography: textOverrideField(),
     ...boxFields,
   },
   defaultProps: {
     links: [
-      { label: "Menu", url: "https://example.com/menu", boxColor: "", typography: noOverride },
-      { label: "Reservations", url: "https://example.com/reservations", boxColor: "", typography: noOverride },
-      { label: "Private events", url: "https://example.com/private-events", boxColor: "", typography: noOverride },
+      { label: "Menu", url: "https://example.com/menu", boxColor: "", linkColor: "" },
+      { label: "Reservations", url: "https://example.com/reservations", boxColor: "", linkColor: "" },
+      { label: "Private events", url: "https://example.com/private-events", boxColor: "", linkColor: "" },
     ],
-    look: "plain",
-    separatorColor: "#000000",
-    barColor: "#000000",
-    linkSpacing: 8,
+    style: defaultStyle,
     typography: noOverride,
     ...boxDefaults(8, 8),
   },
-  render: ({
-    links,
-    look,
-    separatorColor,
-    barColor,
-    linkSpacing,
-    typography,
-    puck,
-    spaceAbove,
-    spaceBelow,
-    background,
-  }) => {
+  render: ({ links, style, typography, puck, box }) => {
+    const { look, separatorColor, barColor, linkSpacing } = style ?? defaultStyle;
     const items = (links ?? []).flatMap((link) => {
       const href = safeHref(link.url);
       return href && link.label ? [{ ...link, href }] : [];
@@ -92,7 +90,7 @@ export const Navigation: ComponentConfig<NavigationProps> = {
     const allLinks = applyOverride(styleOf(puck).text.normal, typography);
     const gap = Math.max(0, Math.min(48, Number(linkSpacing) || 0));
     return (
-      <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
+      <Box {...box}>
         <table
           role="presentation"
           width="100%"
@@ -122,7 +120,7 @@ export const Navigation: ComponentConfig<NavigationProps> = {
                   <Link
                     href={link.href}
                     style={{
-                      ...textCss(applyOverride(allLinks, link.typography)),
+                      ...textCss({ ...allLinks, color: colorOr(link.linkColor, allLinks.color) }),
                       display: "block",
                       padding: "10px 4px",
                       backgroundColor: look === "boxes" ? colorOr(link.boxColor, DEFAULT_BOX) : undefined,

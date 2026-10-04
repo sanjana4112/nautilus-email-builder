@@ -19,9 +19,7 @@ const heading = (text: string, textStyle: "title" | "heading1" | "heading2" | "s
       textStyle,
       align: "left",
       typography: noOverride,
-      spaceAbove: 0,
-      spaceBelow: 16,
-      background: "",
+      box: { spaceAbove: 0, spaceBelow: 16, background: "" },
     },
   }) as const;
 
@@ -70,7 +68,12 @@ describe("renderEmailHtml", () => {
     const plain = await renderEmailHtml(email([heading("Hi")]));
     expect(plain).toContain("padding:0px 24px 16px");
     const colored = await renderEmailHtml(
-      email([{ ...heading("Hi"), props: { ...heading("Hi").props, spaceAbove: 40, background: "#0a7a3a" } }]),
+      email([
+        {
+          ...heading("Hi"),
+          props: { ...heading("Hi").props, box: { spaceAbove: 40, spaceBelow: 16, background: "#0a7a3a" } },
+        },
+      ]),
     );
     expect(colored).toContain("padding:40px 24px 16px");
     expect(colored).toContain("background-color:#0a7a3a");

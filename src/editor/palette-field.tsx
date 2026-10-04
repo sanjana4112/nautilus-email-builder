@@ -14,7 +14,7 @@ export function ColorChoice({
   palette,
   onChange,
   allowNone = false,
-  noneLabel = "None (transparent)",
+  noneLabel = "None",
 }: {
   value: string;
   palette: string[];

@@ -122,7 +122,12 @@ function TextStyleEditor({
             <Toggle on={value.bold} onClick={() => onChange({ bold: !value.bold })} label="Bold" className="font-bold">
               B
             </Toggle>
-            <Toggle on={value.italic} onClick={() => onChange({ italic: !value.italic })} label="Italic" className="italic">
+            <Toggle
+              on={value.italic}
+              onClick={() => onChange({ italic: !value.italic })}
+              label="Italic"
+              className="italic"
+            >
               I
             </Toggle>
             <Toggle

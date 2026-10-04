@@ -5,6 +5,7 @@ import { Puck, type Plugin } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
 import type { EmailData } from "@/email/render";
 import { defaultPage, defaultStyle, EMAIL_WIDTH, resolveStyle } from "@/email/theme";
+import { FieldGroup } from "./field-group";
 import { editorConfig } from "./puck-config";
 import { SendPanel } from "./send-panel";
 import { StylePanel } from "./style-panel";
@@ -16,7 +17,11 @@ const emptyEmail: EmailData = {
 
 // Defined once, outside the component: Puck rebuilds its internal state
 // whenever these objects change identity.
-const overrides = { headerActions: () => <SendPanel /> };
+const overrides = {
+  headerActions: () => <SendPanel />,
+  // Grouped fields become collapsible sections in the right tab.
+  fieldTypes: { object: FieldGroup },
+};
 
 // Puck always adds its own "Blocks" and "Outline" tabs. A plugin with the
 // same name replaces a built-in one, so naming ours "outline" swaps the

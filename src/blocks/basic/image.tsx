@@ -16,9 +16,9 @@ const PLACEHOLDER_HEIGHT = EMAIL_WIDTH / 2;
 export const ImageBlock: ComponentConfig<ImageProps> = {
   label: "Image",
   fields: {
-    imageUrl: { type: "text", label: "Image URL (https)" },
-    alt: { type: "text", label: "Alt text (shown if images are off)" },
-    linkUrl: { type: "text", label: "Link (optional)" },
+    imageUrl: { type: "text", label: "Image link" },
+    alt: { type: "text", label: "Alt text" },
+    linkUrl: { type: "text", label: "Link" },
     ...boxFields,
   },
   defaultProps: {
@@ -27,7 +27,7 @@ export const ImageBlock: ComponentConfig<ImageProps> = {
     linkUrl: "",
     ...boxDefaults(0, 16),
   },
-  render: ({ imageUrl, alt, linkUrl, puck, spaceAbove, spaceBelow, background }) => {
+  render: ({ imageUrl, alt, linkUrl, puck, box }) => {
     const src = safeImageSrc(imageUrl);
     // Only the editor shows a placeholder; the sent email just leaves it out.
     if (!src && !puck.isEditing) return <></>;
@@ -43,12 +43,12 @@ export const ImageBlock: ComponentConfig<ImageProps> = {
           justifyContent: "center",
         }}
       >
-        <Text style={{ margin: 0, color: "#71717a" }}>Add an https image URL in the right panel</Text>
+        <Text style={{ margin: 0, color: "#71717a" }}>Add an image link in the right panel</Text>
       </div>
     );
     const href = safeHref(linkUrl);
     return (
-      <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background} inset={false}>
+      <Box {...box} inset={false}>
         {href && src ? <Link href={href}>{image}</Link> : image}
       </Box>
     );

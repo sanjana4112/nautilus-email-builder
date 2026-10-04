@@ -33,8 +33,8 @@ export const Title: ComponentConfig<TitleProps> = {
     typography: noOverride,
     ...boxDefaults(24, 16),
   },
-  render: ({ title, align, typography, puck, spaceAbove, spaceBelow, background }) => (
-    <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
+  render: ({ title, align, typography, puck, box }) => (
+    <Box {...box}>
       <Text
         style={{
           ...textCss(applyOverride(styleOf(puck).text.title, typography)),

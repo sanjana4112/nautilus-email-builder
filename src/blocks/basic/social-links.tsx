@@ -62,7 +62,7 @@ export const SocialLinks: ComponentConfig<SocialLinksProps> = {
     typography: noOverride,
     ...boxDefaults(8, 16),
   },
-  render: ({ links, align, typography, puck, spaceAbove, spaceBelow, background }) => {
+  render: ({ links, align, typography, puck, box }) => {
     // Skip unknown networks and missing or unsafe links.
     const items = (links ?? []).flatMap(({ network, url }) => {
       const href = safeHref(url);
@@ -71,7 +71,7 @@ export const SocialLinks: ComponentConfig<SocialLinksProps> = {
     if (items.length === 0) return <></>;
     const normal = textCss(applyOverride(styleOf(puck).text.normal, typography));
     return (
-      <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
+      <Box {...box}>
         <Text style={{ ...normal, textAlign: align, margin: 0 }}>
           {items.map(({ label, href }, i) => (
             <Fragment key={i}>

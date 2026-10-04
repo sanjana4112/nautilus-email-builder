@@ -28,7 +28,7 @@ export type ButtonProps = BoxProps & {
 export const Button: ComponentConfig<ButtonProps> = {
   fields: {
     label: { type: "text", label: "Label" },
-    url: { type: "text", label: "Link (https:// or mailto:)" },
+    url: { type: "text", label: "Link" },
     backgroundColor: paletteColorField("Button color"),
     textColor: paletteColorField("Text color"),
     align: alignField,
@@ -44,7 +44,7 @@ export const Button: ComponentConfig<ButtonProps> = {
     typography: noOverride,
     ...boxDefaults(8, 16),
   },
-  render: ({ label, url, backgroundColor, textColor, align, typography, puck, spaceAbove, spaceBelow, background }) => {
+  render: ({ label, url, backgroundColor, textColor, align, typography, puck, box }) => {
     // Bold label in the button's text color, unless the Label text settings say otherwise.
     const base = { ...styleOf(puck).text.normal, bold: true, underline: false, color: colorOr(textColor, "#ffffff") };
     const css = {
@@ -56,7 +56,7 @@ export const Button: ComponentConfig<ButtonProps> = {
     };
     const href = safeHref(url);
     return (
-      <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
+      <Box {...box}>
         <div style={{ textAlign: align }}>
           {href ? (
             <EmailButton href={href} style={css}>
