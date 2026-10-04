@@ -7,6 +7,7 @@ import { BodyCopy, type BodyCopyProps } from "./basic/body-copy";
 import { Button, type ButtonProps } from "./basic/button";
 import { Columns, type ColumnsProps } from "./basic/columns";
 import { Container, type ContainerProps } from "./basic/container";
+import { Footer, type FooterProps } from "./basic/footer";
 import { Heading, type HeadingProps } from "./basic/heading";
 import { ImageBlock, type ImageProps } from "./basic/image";
 import { Navigation, type NavigationProps } from "./basic/navigation";
@@ -30,6 +31,7 @@ export type BlockProps = {
   Quote: QuoteProps;
   Button: ButtonProps;
   SocialLinks: SocialLinksProps;
+  Footer: FooterProps;
 };
 
 // Settings for the whole email ("Page" in Puck's sidebar). `title` is Puck's
@@ -76,5 +78,6 @@ export const blocksConfig: Config<BlockProps, EmailRootProps> = {
     Quote,
     Button,
     SocialLinks,
+    Footer,
   },
 };

@@ -5,6 +5,8 @@ import { blocksConfig, type BlockProps, type EmailRootProps } from "@/blocks";
 import { EmailFrame, RESPONSIVE_CSS } from "./frame";
 import { resolvePage, resolveStyle } from "./theme";
 
+const defaultFooter = { type: "Footer", props: { id: "auto-footer", ...blocksConfig.components.Footer.defaultProps } };
+
 export type EmailData = Data<BlockProps, EmailRootProps>;
 
 type BlockRender = ComponentType<Record<string, unknown> & { puck: PuckContext }>;
@@ -35,11 +37,29 @@ function renderBlocks(items: unknown, puck: PuckContext, depth: number): ReactNo
   });
 }
 
+// Resend swaps this for each reader's own unsubscribe link in Broadcasts.
+export const LIST_UNSUBSCRIBE_URL = "{{{RESEND_UNSUBSCRIBE_URL}}}";
+
+type RenderOptions = {
+  // Sending to a list: the Footer's link becomes each reader's unsubscribe
+  // link, and a Footer is added if the design doesn't have one.
+  forList?: boolean;
+};
+
+function hasFooter(items: unknown, depth = 0): boolean {
+  if (!Array.isArray(items) || depth > MAX_DEPTH) return false;
+  return items.some(
+    (item: { type?: string; props?: Record<string, unknown> }) =>
+      item?.type === "Footer" ||
+      Object.values(item?.props ?? {}).some((value) => Array.isArray(value) && hasFooter(value, depth + 1)),
+  );
+}
+
 // Turns the editor's saved design into the HTML string an inbox receives.
 // We call each block's render ourselves instead of using Puck's <Render>,
 // because Puck's version uses React hooks that crash inside React Email's
 // render on the server.
-export async function renderEmailHtml(data: EmailData): Promise<string> {
+export async function renderEmailHtml(data: EmailData, { forList = false }: RenderOptions = {}): Promise<string> {
   const style = resolveStyle(data.root.props?.style);
   const page = resolvePage(data.root.props);
 
@@ -47,7 +67,7 @@ export async function renderEmailHtml(data: EmailData): Promise<string> {
   // there is nothing to drag or drop into; metadata carries the Style tab.
   const puck: PuckContext = {
     renderDropZone: () => null,
-    metadata: { style },
+    metadata: { style, unsubscribeUrl: forList ? LIST_UNSUBSCRIBE_URL : undefined },
     isEditing: false,
     dragRef: null,
   };
@@ -59,7 +79,11 @@ export async function renderEmailHtml(data: EmailData): Promise<string> {
         <style>{RESPONSIVE_CSS}</style>
       </Head>
       <Body style={{ backgroundColor: page.background || undefined, margin: 0 }}>
-        <EmailFrame page={page}>{renderBlocks(data.content, puck, 0)}</EmailFrame>
+        <EmailFrame page={page}>
+          {renderBlocks(data.content, puck, 0)}
+          {/* Marketing email must always offer an unsubscribe link. */}
+          {forList && !hasFooter(data.content) && renderBlocks([defaultFooter], puck, 0)}
+        </EmailFrame>
       </Body>
     </Html>,
   );

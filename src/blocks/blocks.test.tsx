@@ -331,6 +331,40 @@ describe("Banner", () => {
   });
 });
 
+describe("Footer and unsubscribe", () => {
+  const listHtml = (...content: Item[]) =>
+    renderEmailHtml({ content, root: { props: { title: "", subject: "", style: defaultStyle } } }, { forList: true });
+
+  it("shows the note, address, and an unsubscribe link that goes nowhere in a test send", async () => {
+    const out = await html(block("Footer", { address: "Supper Club\n12 Grand St" }));
+    expect(out).toContain("joined our list");
+    expect(out).toMatch(/Supper Club<br\/?>12 Grand St/);
+    expect(out).toContain('href="#"');
+    expect(out).toContain("Unsubscribe");
+    expect(out).not.toContain("works when you send to a list");
+  });
+
+  it("uses each reader's own unsubscribe link when sent to a list", async () => {
+    const out = await listHtml(block("Footer"));
+    expect(out).toContain('href="{{{RESEND_UNSUBSCRIBE_URL}}}"');
+  });
+
+  it("adds a footer to list emails that don't have one", async () => {
+    const out = await listHtml(block("Heading"));
+    expect(out).toContain('href="{{{RESEND_UNSUBSCRIBE_URL}}}"');
+  });
+
+  it("doesn't add a second footer, even when the footer sits inside a layout block", async () => {
+    const out = await listHtml(block("Section", { content: [block("Footer", { unsubscribeText: "Opt out" })] }));
+    expect((out.match(/RESEND_UNSUBSCRIBE_URL/g) ?? []).length).toBe(1);
+    expect(out).toContain("Opt out");
+  });
+
+  it("doesn't add a footer to a test send to one address", async () => {
+    expect(await html(block("Heading"))).not.toContain("Unsubscribe");
+  });
+});
+
 describe("layout blocks", () => {
   const button = (label: string) => block("Button", { label, url: "https://example.com" });
 

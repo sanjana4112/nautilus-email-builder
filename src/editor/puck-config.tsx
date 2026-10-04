@@ -62,7 +62,7 @@ export const editorConfig: Config<BlockProps, EmailRootProps> = {
     layout: { title: "Layout", components: ["Section", "Container", "Columns"] },
     header: { title: "Header", components: ["Title", "Banner", "Navigation"] },
     content: { title: "Content", components: ["Heading", "BodyCopy", "Image", "Quote", "Button"] },
-    social: { title: "Social", components: ["SocialLinks"] },
+    social: { title: "Social & footer", components: ["SocialLinks", "Footer"] },
   },
   components: Object.fromEntries(
     Object.entries(blocksConfig.components).map(([name, component]) => [name, withPaletteFields(component)]),
