@@ -4,16 +4,22 @@ import { EmailFrame } from "@/email/frame";
 import { LIMITS, resolvePage, type EmailStyle } from "@/email/theme";
 import { BodyCopy, type BodyCopyProps } from "./basic/body-copy";
 import { Button, type ButtonProps } from "./basic/button";
+import { Columns, type ColumnsProps } from "./basic/columns";
+import { Container, type ContainerProps } from "./basic/container";
 import { Heading, type HeadingProps } from "./basic/heading";
 import { ImageBlock, type ImageProps } from "./basic/image";
 import { Navigation, type NavigationProps } from "./basic/navigation";
 import { Quote, type QuoteProps } from "./basic/quote";
+import { SectionBlock, type SectionProps } from "./basic/section";
 import { SocialLinks, type SocialLinksProps } from "./basic/social-links";
 import { Title, type TitleProps } from "./basic/title";
 import { paletteColorField } from "./shared";
 
 // Every block's props, keyed by the name Puck stores in the saved data.
 export type BlockProps = {
+  Section: SectionProps;
+  Container: ContainerProps;
+  Columns: ColumnsProps;
   Title: TitleProps;
   Navigation: NavigationProps;
   Image: ImageProps;
@@ -55,6 +61,9 @@ export const blocksConfig: Config<BlockProps, EmailRootProps> = {
     render: ({ children, ...page }) => createElement(EmailFrame, { page: resolvePage(page) }, children),
   },
   components: {
+    Section: SectionBlock,
+    Container,
+    Columns,
     Title,
     Navigation,
     Image: ImageBlock,

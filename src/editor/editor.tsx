@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Puck, type Plugin } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
 import type { EmailData } from "@/email/render";
-import { defaultPage, defaultStyle, EMAIL_WIDTH, resolveStyle } from "@/email/theme";
+import { defaultPage, defaultStyle, resolveStyle } from "@/email/theme";
 import { FieldGroup } from "./field-group";
 import { editorConfig } from "./puck-config";
 import { SendPanel } from "./send-panel";
@@ -35,10 +35,12 @@ const plugins: Plugin[] = [
   },
 ];
 
-// Preview widths: a standard 600px email and a typical phone. Puck zooms the
-// canvas so the chosen width fills the editor.
+// Preview widths, like the screens an email is read on. Desktop is an
+// inbox-sized pane with the 600px email centered, as Gmail shows it; Tablet
+// and Mobile trigger the Columns block's wrapping rules.
 const viewports = [
-  { width: EMAIL_WIDTH, label: "Desktop", icon: "Monitor" as const },
+  { width: 1000, label: "Desktop", icon: "Monitor" as const },
+  { width: 768, label: "Tablet", icon: "Tablet" as const },
   { width: 375, label: "Mobile", icon: "Smartphone" as const },
 ];
 

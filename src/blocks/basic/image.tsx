@@ -25,7 +25,7 @@ export const ImageBlock: ComponentConfig<ImageProps> = {
     imageUrl: "",
     alt: "Image",
     linkUrl: "",
-    ...boxDefaults(0, 16),
+    ...boxDefaults(0, 16, 0),
   },
   render: ({ imageUrl, alt, linkUrl, puck, box }) => {
     const src = safeImageSrc(imageUrl);
@@ -47,10 +47,6 @@ export const ImageBlock: ComponentConfig<ImageProps> = {
       </div>
     );
     const href = safeHref(linkUrl);
-    return (
-      <Box {...box} inset={false}>
-        {href && src ? <Link href={href}>{image}</Link> : image}
-      </Box>
-    );
+    return <Box {...box}>{href && src ? <Link href={href}>{image}</Link> : image}</Box>;
   },
 };

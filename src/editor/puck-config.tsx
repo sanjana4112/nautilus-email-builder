@@ -44,6 +44,7 @@ export const editorConfig: Config<BlockProps, EmailRootProps> = {
   ...blocksConfig,
   root: withPaletteFields(blocksConfig.root ?? {}),
   categories: {
+    layout: { title: "Layout", components: ["Section", "Container", "Columns"] },
     header: { title: "Header", components: ["Title", "Navigation"] },
     content: { title: "Content", components: ["Heading", "BodyCopy", "Image", "Quote", "Button"] },
     social: { title: "Social", components: ["SocialLinks"] },

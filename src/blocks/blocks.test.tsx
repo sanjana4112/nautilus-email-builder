@@ -204,6 +204,71 @@ describe("SocialLinks", () => {
   });
 });
 
+describe("layout blocks", () => {
+  const button = (label: string) => block("Button", { label, url: "https://example.com" });
+
+  it("Section draws its blocks inside a full-width band", async () => {
+    const out = await html(
+      block("Section", {
+        content: [button("Inside")],
+        box: { spaceAbove: 0, spaceBelow: 0, spaceSides: 0, background: "#123456" },
+      }),
+    );
+    expect(out).toContain("background-color:#123456");
+    expect(out).toContain("Inside");
+  });
+
+  it("Container draws a card with fill, border, and rounded corners", async () => {
+    const out = await html(
+      block("Container", {
+        content: [button("Card")],
+        card: { fill: "#fafafa", borderColor: "#0a7a3a", borderWidth: 2, radius: 12, padding: 8 },
+      }),
+    );
+    expect(out).toContain("Card");
+    expect(out).toContain("border:2px solid #0a7a3a");
+    expect(out).toContain("border-radius:12px");
+    expect(out).toContain("background-color:#fafafa");
+  });
+
+  it("Columns shows only the chosen number of columns, kept between 1 and 4", async () => {
+    const cols = {
+      column1: [button("One")],
+      column2: [button("Two")],
+      column3: [button("Three")],
+      column4: [button("Four")],
+    };
+    const three = await html(block("Columns", { ...cols, count: 3 }));
+    expect(three).toContain("eb-cols-3");
+    expect(three).toContain("Three");
+    expect(three).not.toContain("Four");
+    expect((three.match(/class="eb-col"/g) ?? []).length).toBe(3);
+    expect(await html(block("Columns", { ...cols, count: 9 }))).toContain("eb-cols-4");
+    expect(await html(block("Columns", { ...cols, count: 0 }))).toContain("eb-cols-1");
+  });
+
+  it("includes the screen-size rules that wrap columns on tablets and phones", async () => {
+    const out = await html(block("Columns"));
+    expect(out).toMatch(/<head>[\s\S]*@media \(max-width: 480px\)[\s\S]*<\/head>/);
+  });
+
+  it("renders blocks nested several levels deep", async () => {
+    const out = await html(
+      block("Section", {
+        content: [block("Container", { content: [block("Columns", { column1: [button("Deep")] })] })],
+      }),
+    );
+    expect(out).toContain("Deep");
+  });
+
+  it("stops at the nesting limit instead of crashing", async () => {
+    let item = button("Too deep");
+    for (let i = 0; i < 20; i++) item = block("Section", { content: [item] });
+    const out = await html(item);
+    expect(out).not.toContain("Too deep");
+  });
+});
+
 describe("safeHref / safeImageSrc", () => {
   it.each([
     ["https://example.com", "https://example.com"],

@@ -1,13 +1,39 @@
-import type { Data, PuckContext } from "@puckeditor/core";
-import type { ComponentType } from "react";
-import { Body, Html, render } from "@react-email/components";
+import type { Data, Field, PuckContext } from "@puckeditor/core";
+import type { ComponentType, ReactNode } from "react";
+import { Body, Head, Html, render } from "@react-email/components";
 import { blocksConfig, type BlockProps, type EmailRootProps } from "@/blocks";
-import { EmailFrame } from "./frame";
+import { EmailFrame, RESPONSIVE_CSS } from "./frame";
 import { resolvePage, resolveStyle } from "./theme";
 
 export type EmailData = Data<BlockProps, EmailRootProps>;
 
 type BlockRender = ComponentType<Record<string, unknown> & { puck: PuckContext }>;
+
+// How deep blocks can sit inside each other (e.g. Section > Container >
+// Columns > Button). Stops a malformed design from looping forever.
+const MAX_DEPTH = 8;
+
+// Draws a list of saved blocks. Layout blocks (Section, Container, Columns)
+// keep their inner blocks in "slot" props; the editor turns those into drop
+// zones, so here we turn each into a small component that draws its blocks.
+function renderBlocks(items: unknown, puck: PuckContext, depth: number): ReactNode {
+  if (!Array.isArray(items) || depth > MAX_DEPTH) return null;
+  return items.map((item: { type?: string; props?: Record<string, unknown> }, i) => {
+    const config = item?.type ? blocksConfig.components[item.type as keyof BlockProps] : undefined;
+    if (!config) return null;
+    const props: Record<string, unknown> = { ...item.props };
+    for (const [name, field] of Object.entries((config.fields ?? {}) as Record<string, Field>)) {
+      if (field.type === "slot") {
+        const children = props[name];
+        props[name] = () => renderBlocks(children, puck, depth + 1);
+      }
+    }
+    // Props come from the same saved block as `type`, so they always fit this
+    // render; TypeScript can't link the two across every block type.
+    const Block = config.render as BlockRender;
+    return <Block key={String(props.id ?? i)} {...props} puck={puck} />;
+  });
+}
 
 // Turns the editor's saved design into the HTML string an inbox receives.
 // We call each block's render ourselves instead of using Puck's <Render>,
@@ -28,15 +54,12 @@ export async function renderEmailHtml(data: EmailData): Promise<string> {
 
   return render(
     <Html lang="en">
+      {/* Gmail only reads screen-size rules from <head>. */}
+      <Head>
+        <style>{RESPONSIVE_CSS}</style>
+      </Head>
       <Body style={{ backgroundColor: page.background, margin: 0 }}>
-        <EmailFrame page={page}>
-          {data.content.map(({ type, props }) => {
-            // Props come from the same saved block as `type`, so they always fit
-            // this render; TypeScript can't link the two across 8 block types.
-            const Block = blocksConfig.components[type]?.render as BlockRender | undefined;
-            return Block ? <Block key={props.id} {...props} puck={puck} /> : null;
-          })}
-        </EmailFrame>
+        <EmailFrame page={page}>{renderBlocks(data.content, puck, 0)}</EmailFrame>
       </Body>
     </Html>,
   );

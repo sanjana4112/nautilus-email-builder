@@ -100,6 +100,7 @@ export function safeImageSrc(url: unknown): string | undefined {
 export type BoxSettings = {
   spaceAbove: number;
   spaceBelow: number;
+  spaceSides: number;
   background: string;
 };
 export type BoxProps = { box: BoxSettings };
@@ -113,27 +114,29 @@ export const boxFields: { box: ObjectField<BoxSettings> } = {
     objectFields: {
       spaceAbove: spaceField("Space above"),
       spaceBelow: spaceField("Space below"),
+      spaceSides: spaceField("Side padding"),
       background: paletteColorField("Background", { allowNone: true }),
     },
   },
 };
 
-export function boxDefaults(spaceAbove = 0, spaceBelow = 16): BoxProps {
-  return { box: { spaceAbove, spaceBelow, background: "" } };
+// Side padding defaults to 24px so text doesn't touch the edge of the email;
+// full-bleed blocks (images, sections, banners) default to 0.
+export const INSET = 24;
+
+export function boxDefaults(spaceAbove = 0, spaceBelow = 16, spaceSides = INSET): BoxProps {
+  return { box: { spaceAbove, spaceBelow, spaceSides, background: "" } };
 }
 
-// Side padding for text, so it doesn't touch the edge of the email.
-// Full-bleed blocks (images, banners) pass inset={false}.
-const INSET = 24;
-
+// The wrapper every block renders inside: its spacing and background.
 export function Box({
   spaceAbove,
   spaceBelow,
+  spaceSides,
   background,
-  inset = true,
   children,
-}: Partial<BoxSettings> & { inset?: boolean; children: ReactNode }) {
-  const side = inset ? INSET : 0;
+}: Partial<BoxSettings> & { children: ReactNode }) {
+  const side = resolveSpace(spaceSides, INSET);
   return (
     <Cell
       background={colorOr(background, undefined)}

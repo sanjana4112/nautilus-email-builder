@@ -91,7 +91,9 @@ function color(value: unknown, fallback: string): string {
 }
 
 function clamp(value: unknown, { min, max }: { min: number; max: number }, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : fallback;
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(max, Math.max(min, Math.round(value)))
+    : fallback;
 }
 
 function flag(value: unknown, fallback: boolean): boolean {
@@ -114,7 +116,10 @@ export function resolveStyle(raw: unknown): EmailStyle {
   const text = {} as Record<TextStyleName, TextStyle>;
   for (const name of Object.keys(TEXT_STYLE_LABELS) as TextStyleName[]) {
     const fallback = defaultStyle.text[name];
-    const t = (typeof rawText[name] === "object" && rawText[name] !== null ? rawText[name] : {}) as Record<string, unknown>;
+    const t = (typeof rawText[name] === "object" && rawText[name] !== null ? rawText[name] : {}) as Record<
+      string,
+      unknown
+    >;
     text[name] = {
       font: font(t.font, fallback.font),
       size: clamp(t.size, LIMITS.fontSize, fallback.size),
@@ -147,8 +152,20 @@ export function resolveSpace(value: unknown, fallback: number): number {
 
 // Starter colors for the palette's "+" button, so each new swatch is distinct.
 const STARTER_COLORS = [
-  "#808080", "#d32f2f", "#1976d2", "#388e3c", "#f57c00", "#7b1fa2", "#0097a7",
-  "#c2185b", "#5d4037", "#fbc02d", "#455a64", "#afb42b", "#e64a19", "#303f9f",
+  "#808080",
+  "#d32f2f",
+  "#1976d2",
+  "#388e3c",
+  "#f57c00",
+  "#7b1fa2",
+  "#0097a7",
+  "#c2185b",
+  "#5d4037",
+  "#fbc02d",
+  "#455a64",
+  "#afb42b",
+  "#e64a19",
+  "#303f9f",
 ];
 
 // A color not already in the palette. Duplicates would be merged away by
@@ -158,7 +175,9 @@ export function nextPaletteColor(palette: string[]): string {
   if (starter) return starter;
   let c: string;
   do {
-    c = `#${Math.floor(Math.random() * 0x1000000).toString(16).padStart(6, "0")}`;
+    c = `#${Math.floor(Math.random() * 0x1000000)
+      .toString(16)
+      .padStart(6, "0")}`;
   } while (palette.includes(c));
   return c;
 }
