@@ -1,6 +1,6 @@
 import type { EmailData } from "@/email/render";
 import { isEmail } from "@/lib/contacts-csv";
-import { resend } from "@/lib/resend";
+import { getResend } from "@/lib/resend";
 
 // Shared by "send now" (api/send) and scheduled sends (api/schedule and the
 // Temporal worker): who an email goes to, checking a request, and delivering.
@@ -53,11 +53,20 @@ export async function deliver(
   subject: string,
   target: Target,
 ): Promise<{ id: string } | { error: string }> {
+  try {
+    return await send(html, subject, target);
+  } catch (err) {
+    // e.g. RESEND_API_KEY is missing: report it like any other send failure.
+    return { error: err instanceof Error ? err.message : "Sending failed." };
+  }
+}
+
+async function send(html: string, subject: string, target: Target): Promise<{ id: string } | { error: string }> {
   if (target.kind === "one") {
-    const { data, error } = await resend.emails.send({ from: from(), to: target.to, subject, html });
+    const { data, error } = await getResend().emails.send({ from: from(), to: target.to, subject, html });
     return error || !data ? { error: error?.message ?? "Sending failed." } : { id: data.id };
   }
-  const { data, error } = await resend.broadcasts.create({
+  const { data, error } = await getResend().broadcasts.create({
     segmentId: target.segmentId,
     from: from(),
     subject,

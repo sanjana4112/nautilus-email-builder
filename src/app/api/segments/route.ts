@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { MAX_CSV_BYTES, readContacts, toContactsCsv } from "@/lib/contacts-csv";
-import { resend } from "@/lib/resend";
+import { getResend } from "@/lib/resend";
 
 const MAX_NAME_LENGTH = 100;
 
 // GET /api/segments: your saved lists (Resend "segments").
 export async function GET() {
+  let resend;
+  try {
+    resend = getResend();
+  } catch (err) {
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+  }
   const { data, error } = await resend.segments.list();
   if (error) return NextResponse.json({ error: error.message }, { status: 502 });
   return NextResponse.json({ segments: (data?.data ?? []).map(({ id, name }) => ({ id, name })) });
@@ -35,6 +41,12 @@ export async function POST(request: Request) {
   if (readError) return NextResponse.json({ error: readError }, { status: 400 });
   if (contacts.length === 0) return NextResponse.json({ error: "No valid email addresses found." }, { status: 400 });
 
+  let resend;
+  try {
+    resend = getResend();
+  } catch (err) {
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+  }
   const segment = await resend.segments.create({ name });
   if (segment.error || !segment.data) {
     return NextResponse.json({ error: segment.error?.message ?? "Couldn't create the list." }, { status: 502 });

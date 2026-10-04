@@ -8,7 +8,7 @@ const getHandle = vi.fn(() => ({ cancel }));
 const getTemporalClient = vi.fn();
 vi.mock("@/temporal/client", () => ({ getTemporalClient }));
 // Scheduling never sends directly; Resend is only reached from the worker.
-vi.mock("@/lib/resend", () => ({ resend: {} }));
+vi.mock("@/lib/resend", () => ({ getResend: () => ({}) }));
 
 const { POST, GET, DELETE } = await import("./route");
 

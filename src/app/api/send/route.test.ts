@@ -3,7 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // Fake Resend so tests never send real email or need an API key.
 const send = vi.fn();
 const createBroadcast = vi.fn();
-vi.mock("@/lib/resend", () => ({ resend: { emails: { send }, broadcasts: { create: createBroadcast } } }));
+vi.mock("@/lib/resend", () => ({
+  getResend: () => ({ emails: { send }, broadcasts: { create: createBroadcast } }),
+}));
 
 const { POST } = await import("./route");
 

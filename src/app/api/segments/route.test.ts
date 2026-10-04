@@ -6,10 +6,10 @@ const createSegment = vi.fn();
 const createImport = vi.fn();
 const getImport = vi.fn();
 vi.mock("@/lib/resend", () => ({
-  resend: {
+  getResend: () => ({
     segments: { list, create: createSegment },
     contacts: { imports: { create: createImport, get: getImport } },
-  },
+  }),
 }));
 
 const { GET, POST } = await import("./route");
