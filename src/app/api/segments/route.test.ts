@@ -5,9 +5,10 @@ const list = vi.fn();
 const createSegment = vi.fn();
 const createImport = vi.fn();
 const getImport = vi.fn();
+const removeSegment = vi.fn();
 vi.mock("@/lib/resend", () => ({
   getResend: () => ({
-    segments: { list, create: createSegment },
+    segments: { list, create: createSegment, remove: removeSegment },
     contacts: { imports: { create: createImport, get: getImport } },
   }),
 }));
@@ -34,6 +35,7 @@ describe("POST /api/segments", () => {
   beforeEach(() => {
     createSegment.mockReset().mockResolvedValue({ data: { id: "seg_1" }, error: null });
     createImport.mockReset().mockResolvedValue({ data: { id: "imp_1" }, error: null });
+    removeSegment.mockReset().mockResolvedValue({ data: {}, error: null });
   });
 
   it("creates the list and imports a cleaned CSV into it", async () => {
@@ -48,6 +50,7 @@ describe("POST /api/segments", () => {
     const { file, segments, onConflict } = createImport.mock.calls[0][0];
     expect(segments).toEqual([{ id: "seg_1" }]);
     expect(onConflict).toBe("upsert");
+    expect(removeSegment).not.toHaveBeenCalled();
     expect(await file.text()).toBe("email,first_name,last_name\nmaria@x.com,'=evil(),");
   });
 
@@ -66,11 +69,19 @@ describe("POST /api/segments", () => {
     expect(createSegment).not.toHaveBeenCalled();
   });
 
+  it("rejects files over 4 MB, below Vercel's request limit", async () => {
+    const response = await upload("VIPs", "email\n" + "a".repeat(4 * 1024 * 1024));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "That file is over 4 MB." });
+    expect(createSegment).not.toHaveBeenCalled();
+  });
+
   it("returns 502 with Resend's message when the import fails", async () => {
     createImport.mockResolvedValue({ data: null, error: { message: "Rate limited" } });
     const response = await upload("VIPs", "email\na@x.com");
     expect(response.status).toBe(502);
     expect(await response.json()).toEqual({ error: "Rate limited" });
+    expect(removeSegment).toHaveBeenCalledWith("seg_1"); // no empty list left behind
   });
 });
 

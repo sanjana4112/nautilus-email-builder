@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Button, createUsePuck, useGetPuck } from "@puckeditor/core";
 import type { blocksConfig } from "@/blocks";
 import type { EmailData } from "@/email/render";
-import { MAX_CSV_BYTES, readContacts, type SkippedRow } from "@/lib/contacts-csv";
+import { CSV_TOO_BIG, MAX_CSV_BYTES, readContacts, type SkippedRow } from "@/lib/contacts-csv";
 
 const usePuck = createUsePuck<typeof blocksConfig>();
 
@@ -92,7 +92,7 @@ export function SendPanel() {
   async function pickCsv(file: File) {
     setCsv(null);
     setCsvError("");
-    if (file.size > MAX_CSV_BYTES) return setCsvError("That file is over 5 MB.");
+    if (file.size > MAX_CSV_BYTES) return setCsvError(CSV_TOO_BIG);
     const { contacts, skipped, error } = readContacts(await file.text());
     if (error) return setCsvError(error);
     if (contacts.length === 0) return setCsvError("No valid email addresses found.");

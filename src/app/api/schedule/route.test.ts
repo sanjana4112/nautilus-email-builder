@@ -73,6 +73,22 @@ describe("POST /api/schedule", () => {
   });
 });
 
+describe("POST /api/schedule errors", () => {
+  const body = () => ({ to: "maria@x.com", data: validData, sendAt: inAnHour() });
+
+  it("says Temporal isn't running only when it can't be reached", async () => {
+    start.mockRejectedValueOnce(Object.assign(new Error("14 UNAVAILABLE: No connection established"), { code: 14 }));
+    expect((await post(body())).status).toBe(503);
+  });
+
+  it("passes on other failures with their real reason", async () => {
+    start.mockRejectedValueOnce(new Error("Blob data size exceeds limit"));
+    const response = await post(body());
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({ error: "Couldn't schedule: Blob data size exceeds limit" });
+  });
+});
+
 describe("GET /api/schedule", () => {
   it("lists upcoming sends, soonest first", async () => {
     list.mockReturnValue(

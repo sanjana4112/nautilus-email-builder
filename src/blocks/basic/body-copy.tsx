@@ -65,7 +65,8 @@ export const BodyCopy: ComponentConfig<BodyCopyProps> = {
     ...boxDefaults(0, 16),
   },
   render: ({ text, textStyle, align, typography, puck, box }) => {
-    const base = styleOf(puck).text[textStyle] ?? styleOf(puck).text.normal;
+    // Saved data is untrusted: anything that isn't a body style becomes Normal text.
+    const base = styleOf(puck).text[BODY_STYLES.includes(textStyle) ? textStyle : "normal"];
     const css = textCss(applyOverride(base, typography));
     // Links: the paragraph's color, underlined (the email norm).
     const linkStyle = `${css.color ? `color:${css.color};` : ""}text-decoration:underline`;

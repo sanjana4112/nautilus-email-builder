@@ -115,7 +115,7 @@ function flag(value: unknown, fallback: boolean): boolean {
 }
 
 function font(value: unknown, fallback: FontName): FontName {
-  return typeof value === "string" && value in EMAIL_SAFE_FONTS ? (value as FontName) : fallback;
+  return typeof value === "string" && Object.hasOwn(EMAIL_SAFE_FONTS, value) ? (value as FontName) : fallback;
 }
 
 // Saved designs come from the browser, so treat every field as untrusted.

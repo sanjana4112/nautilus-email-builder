@@ -47,14 +47,16 @@ export const Heading: ComponentConfig<HeadingProps> = {
     typography: noOverride,
     ...boxDefaults(0, 16),
   },
-  render: ({ text, textStyle, align, typography, puck, box }) => {
+  render: ({ text, textStyle: saved, align, typography, puck, box }) => {
+    // Saved data is untrusted: anything that isn't a heading style becomes Heading 1.
+    const textStyle = HEADING_STYLES.includes(saved) ? saved : "heading1";
     const { text: styles } = styleOf(puck);
     return (
       <Box {...box}>
         <EmailHeading
-          as={TAGS[textStyle] ?? "h1"}
+          as={TAGS[textStyle]}
           style={{
-            ...textCss(applyOverride(styles[textStyle] ?? styles.heading1, typography)),
+            ...textCss(applyOverride(styles[textStyle], typography)),
             lineHeight: 1.25,
             textAlign: align,
             margin: 0,

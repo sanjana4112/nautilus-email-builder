@@ -6,7 +6,11 @@ export type ContactRow = { email: string; firstName: string; lastName: string };
 export type SkippedRow = { line: number; reason: string };
 
 export const MAX_CONTACTS = 10_000;
-export const MAX_CSV_BYTES = 5 * 1024 * 1024;
+// Under Vercel's ~4.5 MB request limit, so big files get our clear message
+// instead of Vercel's generic error. Still room for tens of thousands of rows.
+export const MAX_CSV_MB = 4;
+export const MAX_CSV_BYTES = MAX_CSV_MB * 1024 * 1024;
+export const CSV_TOO_BIG = `That file is over ${MAX_CSV_MB} MB.`;
 
 // One address: no spaces, commas, or second "@".
 const SINGLE_EMAIL = /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/;

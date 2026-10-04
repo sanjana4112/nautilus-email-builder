@@ -66,7 +66,7 @@ export const SocialLinks: ComponentConfig<SocialLinksProps> = {
     // Skip unknown networks and missing or unsafe links.
     const items = (links ?? []).flatMap(({ network, url }) => {
       const href = safeHref(url);
-      return href && network in NETWORKS ? [{ label: NETWORKS[network], href }] : [];
+      return href && Object.hasOwn(NETWORKS, network) ? [{ label: NETWORKS[network], href }] : [];
     });
     if (items.length === 0) return <></>;
     const normal = textCss(applyOverride(styleOf(puck).text.normal, typography));

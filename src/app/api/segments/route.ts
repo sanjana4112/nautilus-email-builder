@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { MAX_CSV_BYTES, readContacts, toContactsCsv } from "@/lib/contacts-csv";
+import { CSV_TOO_BIG, MAX_CSV_BYTES, readContacts, toContactsCsv } from "@/lib/contacts-csv";
 import { getResend } from "@/lib/resend";
 
 const MAX_NAME_LENGTH = 100;
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Keep the name under ${MAX_NAME_LENGTH} characters.` }, { status: 400 });
   }
   if (!(file instanceof Blob)) return NextResponse.json({ error: "Add a CSV file." }, { status: 400 });
-  if (file.size > MAX_CSV_BYTES) return NextResponse.json({ error: "That file is over 5 MB." }, { status: 400 });
+  if (file.size > MAX_CSV_BYTES) return NextResponse.json({ error: CSV_TOO_BIG }, { status: 400 });
 
   const { contacts, skipped, error: readError } = readContacts(await file.text());
   if (readError) return NextResponse.json({ error: readError }, { status: 400 });
@@ -62,6 +62,8 @@ export async function POST(request: Request) {
     segments: [{ id: segment.data.id }],
   });
   if (imported.error || !imported.data) {
+    // Don't leave an empty list behind. Best effort: the error below is what matters.
+    await resend.segments.remove(segment.data.id).catch(() => undefined);
     return NextResponse.json({ error: imported.error?.message ?? "Couldn't import the contacts." }, { status: 502 });
   }
 

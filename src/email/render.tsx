@@ -21,7 +21,11 @@ const MAX_DEPTH = 8;
 function renderBlocks(items: unknown, puck: PuckContext, depth: number): ReactNode {
   if (!Array.isArray(items) || depth > MAX_DEPTH) return null;
   return items.map((item: { type?: string; props?: Record<string, unknown> }, i) => {
-    const config = item?.type ? blocksConfig.components[item.type as keyof BlockProps] : undefined;
+    // Object.hasOwn: only real blocks, not built-in object properties like "constructor".
+    const config =
+      typeof item?.type === "string" && Object.hasOwn(blocksConfig.components, item.type)
+        ? blocksConfig.components[item.type as keyof BlockProps]
+        : undefined;
     if (!config) return null;
     const props: Record<string, unknown> = { ...item.props };
     for (const [name, field] of Object.entries((config.fields ?? {}) as Record<string, Field>)) {

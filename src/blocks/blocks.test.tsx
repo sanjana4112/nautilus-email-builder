@@ -430,6 +430,25 @@ describe("layout blocks", () => {
   });
 });
 
+describe("crafted saved data", () => {
+  // Plain object lookups also find built-in properties ("constructor",
+  // "toString"); these used to crash the renderer.
+  it.each(["constructor", "toString", "__proto__", "hasOwnProperty"])("handles the value %j safely", async (key) => {
+    const out = await html(
+      { type: key, props: { id: "x" } } as unknown as Item,
+      block("Heading", { text: "Heading ok", textStyle: key }),
+      block("BodyCopy", { text: "<p>Body ok</p>", textStyle: key }),
+      block("SocialLinks", { links: [{ network: key, url: "https://a.com" }] }),
+      block("Title", { title: "Title ok", typography: { ...noOverride, font: key } }),
+    );
+    expect(out).toMatch(/<h1[^>]*>Heading ok<\/h1>/);
+    expect(out).toContain("Body ok");
+    expect(out).toContain("Title ok");
+    expect(out).not.toContain('href="https://a.com"');
+    expect(out).not.toContain("function");
+  });
+});
+
 describe("safeHref / safeImageSrc", () => {
   it.each([
     ["https://example.com", "https://example.com"],

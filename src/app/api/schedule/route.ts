@@ -14,6 +14,33 @@ const notRunning = () =>
     { status: 503 },
   );
 
+// True when Temporal can't be reached (gRPC status 14 "unavailable", or a
+// refused or timed-out connection), as opposed to Temporal answering "no".
+function isUnreachable(err: unknown): boolean {
+  for (let e = err, depth = 0; e && depth < 5; e = (e as { cause?: unknown }).cause, depth++) {
+    const { code, message } = e as { code?: unknown; message?: unknown };
+    if (code === 14) return true;
+    if (typeof message === "string" && /UNAVAILABLE|ECONNREFUSED|failed to connect|deadline/i.test(message))
+      return true;
+  }
+  return false;
+}
+
+// "Scheduling isn't running" only when that's the cause; otherwise the real reason.
+function failed(err: unknown, action: string) {
+  if (isUnreachable(err)) return notRunning();
+  const message = err instanceof Error && err.message ? err.message : "unknown error";
+  return NextResponse.json({ error: `Couldn't ${action}: ${message}` }, { status: 502 });
+}
+
+async function connect() {
+  try {
+    return await getTemporalClient();
+  } catch {
+    return null; // can't reach Temporal at all
+  }
+}
+
 // POST /api/schedule: { data, to | segmentId, sendAt } schedules a send.
 export async function POST(request: Request) {
   let body: Record<string, unknown>;
@@ -43,8 +70,9 @@ export async function POST(request: Request) {
     sendAt: input.sendAt,
   };
 
+  const client = await connect();
+  if (!client) return notRunning();
   try {
-    const client = await getTemporalClient();
     const handle = await client.workflow.start(WORKFLOW_TYPE, {
       taskQueue: TASK_QUEUE,
       workflowId: `send-${randomUUID()}`,
@@ -52,15 +80,16 @@ export async function POST(request: Request) {
       memo,
     });
     return NextResponse.json({ id: handle.workflowId, ...memo });
-  } catch {
-    return notRunning();
+  } catch (err) {
+    return failed(err, "schedule");
   }
 }
 
 // GET /api/schedule: sends that are scheduled and not yet sent or cancelled.
 export async function GET() {
+  const client = await connect();
+  if (!client) return notRunning();
   try {
-    const client = await getTemporalClient();
     const scheduled: (ScheduledSendMemo & { id: string })[] = [];
     const query = `WorkflowType = "${WORKFLOW_TYPE}" AND ExecutionStatus = "Running"`;
     for await (const run of client.workflow.list({ query })) {
@@ -74,8 +103,8 @@ export async function GET() {
     }
     scheduled.sort((a, b) => a.sendAt.localeCompare(b.sendAt));
     return NextResponse.json({ scheduled });
-  } catch {
-    return notRunning();
+  } catch (err) {
+    return failed(err, "load scheduled sends");
   }
 }
 
@@ -85,16 +114,16 @@ export async function DELETE(request: Request) {
   if (!id || !/^send-[0-9a-f-]{36}$/.test(id)) {
     return NextResponse.json({ error: "Missing or invalid scheduled send id." }, { status: 400 });
   }
+  const client = await connect();
+  if (!client) return notRunning();
   try {
-    const client = await getTemporalClient();
     await client.workflow.getHandle(id).cancel();
     return NextResponse.json({ cancelled: id });
   } catch (err) {
-    // Already sent, already cancelled, or Temporal is down.
     const message = err instanceof Error ? err.message : "";
     if (/not found|already completed/i.test(message)) {
       return NextResponse.json({ error: "That send already went out or was cancelled." }, { status: 409 });
     }
-    return notRunning();
+    return failed(err, "cancel");
   }
 }

@@ -6,7 +6,7 @@
 
 A visual email builder that lets users compose, preview, and send emails using a drag-and-drop interface.
 
-- I chose to create an email builder specifically designed for pop-up dinner series and supper clubs. It's not very different from a standard email builder, but I added relevant templates and block options. I also made sure the style tab in the editor made brand style guide adherence as easy as possible.
+- I chose to create an email builder specifically designed for pop-up dinner series and supper clubs. It's not very different from a standard email builder, but I added relevant block options. I also made sure the style tab in the editor made brand style guide adherence as easy as possible.
 
 ## Tech Stack
 
@@ -80,14 +80,13 @@ Everything else works without them; scheduling explains what to start if they ar
 
 ### Tier 3
 
-- Undo/redo button
 - Image upload with resolution check and auto-resize
 - Color palette
 - Multiple recipients
-- CSV contac import/broadcast
+- CSV contact import/broadcast
 - CTRL+K link creation
 
-Also built: brand **Style tab** (palette + six text styles), per-block text overrides, **image upload** with resolution check and auto-resize, **CSV contact import**, **unsubscribe** handling, and **rich text links** in body copy.
+Also built: brand **Style tab** (palette + six text styles), per-block text overrides, **unsubscribe** handling, and **rich text links** in body copy.
 
 ## Architecture Decisions
 
@@ -115,7 +114,7 @@ Also built: brand **Style tab** (palette + six text styles), per-block text over
 - Rich text uses Puck's Tiptap field with only bold, italic, underline, and links. Saved HTML is cleaned to an allowlist (`src/email/rich-text.ts`) before sending.
 - Images upload straight from the browser to Vercel Blob with a short-lived token from `/api/upload`, so the storage key never reaches the browser. Images are resized in the browser to 2× the content width and limited to JPEG, PNG, and GIF (WebP and SVG aren't reliable in Outlook and Gmail).
 - The editor renders only in the browser (`next/dynamic`, `ssr: false`): server and browser renders produced different drag-and-drop IDs and broke dragging.
-- Tests: 178 Vitest tests covering rendering, every block, validation, the rich text cleaner, CSV parsing, and every API route. Resend, Vercel Blob, and Temporal are mocked.
+- Tests: 188 Vitest tests covering rendering, every block, validation, the rich text cleaner, CSV parsing, and every API route. Resend, Vercel Blob, and Temporal are mocked.
 
 ## Assumptions
 
@@ -129,6 +128,7 @@ Also built: brand **Style tab** (palette + six text styles), per-block text over
 - Temporal doesn't run on Vercel. Scheduling is complete in the code and runs locally; the deployed demo has everything except scheduled sends.
 - Social links are text, not icons: icon images need public hosting, which comes with deploying.
 - Undo history records each keystroke or color drag as its own step.
+- Not covered by automated tests: the editor UI (Send popup, Style tab, image field, link dialog, Scheduled tab) and running the workflow in Temporal's test environment. These were checked by hand.
 - Starter repo issues found: the original lockfile pinned a broken Tiptap release (3.20.3, missing its built files), fixed by reinstalling; and npm 10 crashed installing Vitest, worked around with `--legacy-peer-deps`.
 
 ## Time Spent
