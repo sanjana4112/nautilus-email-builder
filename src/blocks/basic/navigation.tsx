@@ -1,9 +1,9 @@
 import type { ComponentConfig } from "@puckeditor/core";
-import { Link, Section } from "@react-email/components";
+import { Link } from "@react-email/components";
 import { textCss } from "@/email/theme";
-import { alignField, safeHref, styleOf, type Align } from "../shared";
+import { alignField, Box, boxDefaults, boxFields, safeHref, styleOf, type Align, type BoxProps } from "../shared";
 
-export type NavigationProps = {
+export type NavigationProps = BoxProps & {
   links: { label: string; url: string }[];
   align: Align;
 };
@@ -22,6 +22,7 @@ export const Navigation: ComponentConfig<NavigationProps> = {
       getItemSummary: (item) => item.label || "Link",
     },
     align: alignField,
+    ...boxFields,
   },
   defaultProps: {
     links: [
@@ -30,8 +31,9 @@ export const Navigation: ComponentConfig<NavigationProps> = {
       { label: "About", url: "https://example.com/about" },
     ],
     align: "center",
+    ...boxDefaults(8, 8),
   },
-  render: ({ links, align, puck }) => {
+  render: ({ links, align, puck, spaceAbove, spaceBelow, background }) => {
     const items = (links ?? []).flatMap(({ label, url }) => {
       const href = safeHref(url);
       return href && label ? [{ label, href }] : [];
@@ -39,13 +41,15 @@ export const Navigation: ComponentConfig<NavigationProps> = {
     if (items.length === 0) return <></>;
     const normal = styleOf(puck).text.normal;
     return (
-      <Section style={{ textAlign: align, padding: "8px 0" }}>
-        {items.map(({ label, href }, i) => (
-          <Link key={i} href={href} style={{ ...textCss(normal), display: "inline-block", padding: "0 12px" }}>
-            {label}
-          </Link>
-        ))}
-      </Section>
+      <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
+        <div style={{ textAlign: align }}>
+          {items.map(({ label, href }, i) => (
+            <Link key={i} href={href} style={{ ...textCss(normal), display: "inline-block", padding: "0 12px" }}>
+              {label}
+            </Link>
+          ))}
+        </div>
+      </Box>
     );
   },
 };

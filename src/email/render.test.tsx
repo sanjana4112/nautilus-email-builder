@@ -2,12 +2,19 @@ import { describe, expect, it } from "vitest";
 import { renderEmailHtml, type EmailData } from "./render";
 import { defaultStyle, type EmailStyle } from "./theme";
 
-function email(content: EmailData["content"], style?: EmailStyle): EmailData {
-  return { content, root: { props: { title: "Test", subject: "Test", style } } };
+function email(
+  content: EmailData["content"],
+  style?: EmailStyle,
+  page: { background?: string; contentWidth?: number } = {},
+): EmailData {
+  return { content, root: { props: { title: "Test", subject: "Test", style, ...page } } };
 }
 
 const heading = (text: string, textStyle: "title" | "heading1" | "heading2" | "subtitle" = "heading1") =>
-  ({ type: "Heading", props: { id: text, text, textStyle } }) as const;
+  ({
+    type: "Heading",
+    props: { id: text, text, textStyle, align: "left", spaceAbove: 0, spaceBelow: 16, background: "" },
+  }) as const;
 
 describe("renderEmailHtml", () => {
   it("renders a heading with its text style from the Style tab", async () => {
@@ -35,10 +42,25 @@ describe("renderEmailHtml", () => {
     expect(html).toMatch(/<h3[^>]*>S<\/h3>/);
   });
 
-  it("applies the background color and content width", async () => {
-    const html = await renderEmailHtml(email([heading("Hi")], { ...defaultStyle, background: "#f4f4f5", contentWidth: 640 }));
+  it("applies the page background and content width", async () => {
+    const html = await renderEmailHtml(email([heading("Hi")], defaultStyle, { background: "#f4f4f5", contentWidth: 480 }));
     expect(html).toContain("background-color:#f4f4f5");
-    expect(html).toContain("max-width:640px");
+    expect(html).toContain("max-width:480px");
+  });
+
+  it("keeps content no wider than the 600px email", async () => {
+    const html = await renderEmailHtml(email([heading("Hi")], defaultStyle, { contentWidth: 900 }));
+    expect(html).toContain("max-width:600px");
+  });
+
+  it("applies a block's spacing and leaves its background transparent by default", async () => {
+    const plain = await renderEmailHtml(email([heading("Hi")]));
+    expect(plain).toContain("padding:0px 24px 16px");
+    const colored = await renderEmailHtml(
+      email([{ ...heading("Hi"), props: { ...heading("Hi").props, spaceAbove: 40, background: "#0a7a3a" } }]),
+    );
+    expect(colored).toContain("padding:40px 24px 16px");
+    expect(colored).toContain("background-color:#0a7a3a");
   });
 
   it("uses default styles when none are saved", async () => {

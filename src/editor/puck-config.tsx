@@ -16,7 +16,12 @@ function withPaletteFields<C extends { fields?: unknown }>(component: C): C {
             type: "custom",
             label: field.label,
             render: ({ value, onChange }) => (
-              <PaletteField label={field.label} value={String(value ?? "")} onChange={onChange} />
+              <PaletteField
+                label={field.label}
+                value={String(value ?? "")}
+                onChange={onChange}
+                allowNone={Boolean(field.metadata?.allowNone)}
+              />
             ),
           } satisfies Field<string>)
         : field,
@@ -29,8 +34,9 @@ function withPaletteFields<C extends { fields?: unknown }>(component: C): C {
 // groups shown in the Blocks tab. The server keeps using blocksConfig.
 export const editorConfig: Config<BlockProps, EmailRootProps> = {
   ...blocksConfig,
+  root: withPaletteFields(blocksConfig.root ?? {}),
   categories: {
-    header: { title: "Header", components: ["Header", "Navigation", "HeroImage"] },
+    header: { title: "Header", components: ["Title", "Navigation", "Image"] },
     content: { title: "Content", components: ["Heading", "BodyCopy", "Quote", "Button"] },
     social: { title: "Social", components: ["SocialLinks"] },
   },

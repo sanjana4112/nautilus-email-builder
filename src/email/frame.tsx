@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
 import { Container, Section } from "@react-email/components";
-import type { EmailStyle } from "./theme";
+import type { PageSettings } from "./theme";
 
-// The email's background and centered content column. Used both on the
-// editor canvas and in the sent email, so the two always match.
-export function EmailFrame({ style, children }: { style: EmailStyle; children?: ReactNode }) {
+// The page background and the content column. Used both on the editor canvas
+// and in the sent email, so the two always match. Content fills the email by
+// default; a narrower width lets the background show at the sides.
+export function EmailFrame({ page, children }: { page: PageSettings; children?: ReactNode }) {
   return (
-    <Section style={{ backgroundColor: style.background, padding: "24px 0" }}>
-      <Container style={{ maxWidth: `${style.contentWidth}px`, padding: "0 24px" }}>{children}</Container>
+    <Section style={{ backgroundColor: page.background }}>
+      <Container style={{ width: "100%", maxWidth: `${page.contentWidth}px` }}>{children}</Container>
     </Section>
   );
 }

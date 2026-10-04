@@ -1,9 +1,20 @@
 import type { ComponentConfig } from "@puckeditor/core";
-import { Button as EmailButton, Section, Text } from "@react-email/components";
+import { Button as EmailButton, Text } from "@react-email/components";
 import { textCss } from "@/email/theme";
-import { alignField, colorOr, paletteColorField, safeHref, styleOf, type Align } from "../shared";
+import {
+  alignField,
+  Box,
+  boxDefaults,
+  boxFields,
+  colorOr,
+  paletteColorField,
+  safeHref,
+  styleOf,
+  type Align,
+  type BoxProps,
+} from "../shared";
 
-export type ButtonProps = {
+export type ButtonProps = BoxProps & {
   label: string;
   url: string;
   backgroundColor: string;
@@ -19,6 +30,7 @@ export const Button: ComponentConfig<ButtonProps> = {
     backgroundColor: paletteColorField("Button color"),
     textColor: paletteColorField("Text color"),
     align: alignField,
+    ...boxFields,
   },
   defaultProps: {
     label: "Get tickets",
@@ -26,8 +38,9 @@ export const Button: ComponentConfig<ButtonProps> = {
     backgroundColor: "#000000",
     textColor: "#ffffff",
     align: "center",
+    ...boxDefaults(8, 16),
   },
-  render: ({ label, url, backgroundColor, textColor, align, puck }) => {
+  render: ({ label, url, backgroundColor, textColor, align, puck, spaceAbove, spaceBelow, background }) => {
     const normal = styleOf(puck).text.normal;
     const css = {
       ...textCss(normal),
@@ -41,16 +54,18 @@ export const Button: ComponentConfig<ButtonProps> = {
     };
     const href = safeHref(url);
     return (
-      <Section style={{ textAlign: align, padding: "8px 0 16px" }}>
-        {href ? (
-          <EmailButton href={href} style={css}>
-            {label}
-          </EmailButton>
-        ) : (
-          // No safe link: show the button shape without making it clickable.
-          <Text style={{ ...css, margin: 0 }}>{label}</Text>
-        )}
-      </Section>
+      <Box spaceAbove={spaceAbove} spaceBelow={spaceBelow} background={background}>
+        <div style={{ textAlign: align }}>
+          {href ? (
+            <EmailButton href={href} style={css}>
+              {label}
+            </EmailButton>
+          ) : (
+            // No safe link: show the button shape without making it clickable.
+            <Text style={{ ...css, margin: 0 }}>{label}</Text>
+          )}
+        </div>
+      </Box>
     );
   },
 };

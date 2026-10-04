@@ -33,16 +33,25 @@ export type TextStyle = {
   color: string;
 };
 
+// Brand-wide look, edited in the Style tab.
 export type EmailStyle = {
   palette: string[];
-  background: string;
-  contentWidth: number;
   text: Record<TextStyleName, TextStyle>;
 };
 
+// Settings for this one email, edited under Page in the right sidebar.
+export type PageSettings = {
+  background: string;
+  contentWidth: number;
+};
+
+// The standard email width most inboxes are designed around.
+export const EMAIL_WIDTH = 600;
+
 export const LIMITS = {
   fontSize: { min: 8, max: 72 },
-  contentWidth: { min: 320, max: 800 },
+  contentWidth: { min: 320, max: EMAIL_WIDTH },
+  space: { min: 0, max: 160 },
   paletteSize: 15,
 } as const;
 
@@ -55,8 +64,6 @@ function textStyle(font: FontName, size: number, bold = false): TextStyle {
 
 export const defaultStyle: EmailStyle = {
   palette: [BLACK, WHITE],
-  background: WHITE,
-  contentWidth: 600,
   text: {
     title: textStyle("Georgia", 36, true),
     heading1: textStyle("Georgia", 28, true),
@@ -65,6 +72,12 @@ export const defaultStyle: EmailStyle = {
     normal: textStyle("Helvetica", 16),
     caption: textStyle("Helvetica", 12),
   },
+};
+
+// Content fills the whole email by default; narrowing it shows the background at the sides.
+export const defaultPage: PageSettings = {
+  background: WHITE,
+  contentWidth: EMAIL_WIDTH,
 };
 
 const HEX = /^#[0-9a-f]{6}$/i;
@@ -114,10 +127,22 @@ export function resolveStyle(raw: unknown): EmailStyle {
 
   return {
     palette: palette.length > 0 ? palette : defaultStyle.palette,
-    background: color(style.background, defaultStyle.background),
-    contentWidth: clamp(style.contentWidth, LIMITS.contentWidth, defaultStyle.contentWidth),
     text,
   };
+}
+
+// Reads the page settings from the design's root props, with the same care.
+export function resolvePage(raw: unknown): PageSettings {
+  const page = (typeof raw === "object" && raw !== null ? raw : {}) as Partial<Record<keyof PageSettings, unknown>>;
+  return {
+    background: color(page.background, defaultPage.background),
+    contentWidth: clamp(page.contentWidth, LIMITS.contentWidth, defaultPage.contentWidth),
+  };
+}
+
+// Vertical spacing around a block, in px.
+export function resolveSpace(value: unknown, fallback: number): number {
+  return clamp(value, LIMITS.space, fallback);
 }
 
 // Starter colors for the palette's "+" button, so each new swatch is distinct.

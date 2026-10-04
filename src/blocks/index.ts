@@ -1,21 +1,22 @@
 import type { Config } from "@puckeditor/core";
 import { createElement } from "react";
 import { EmailFrame } from "@/email/frame";
-import { resolveStyle, type EmailStyle } from "@/email/theme";
+import { LIMITS, resolvePage, type EmailStyle } from "@/email/theme";
 import { BodyCopy, type BodyCopyProps } from "./basic/body-copy";
 import { Button, type ButtonProps } from "./basic/button";
-import { Header, type HeaderProps } from "./basic/header";
 import { Heading, type HeadingProps } from "./basic/heading";
-import { HeroImage, type HeroImageProps } from "./basic/hero-image";
+import { ImageBlock, type ImageProps } from "./basic/image";
 import { Navigation, type NavigationProps } from "./basic/navigation";
 import { Quote, type QuoteProps } from "./basic/quote";
 import { SocialLinks, type SocialLinksProps } from "./basic/social-links";
+import { Title, type TitleProps } from "./basic/title";
+import { paletteColorField } from "./shared";
 
 // Every block's props, keyed by the name Puck stores in the saved data.
 export type BlockProps = {
-  Header: HeaderProps;
+  Title: TitleProps;
   Navigation: NavigationProps;
-  HeroImage: HeroImageProps;
+  Image: ImageProps;
   Heading: HeadingProps;
   BodyCopy: BodyCopyProps;
   Quote: QuoteProps;
@@ -24,11 +25,14 @@ export type BlockProps = {
 };
 
 // Settings for the whole email ("Page" in Puck's sidebar). `title` is Puck's
-// own field, shown in the editor header; `subject` is the email's subject line.
-// `style` is edited in the Style tab, so it has no sidebar field here.
+// own field, shown in the editor header; `subject` is the email's subject line;
+// background and contentWidth only affect this email. `style` is the brand
+// look from the Style tab, so it has no sidebar field here.
 export type EmailRootProps = {
   title: string;
   subject: string;
+  background?: string;
+  contentWidth?: number;
   style?: EmailStyle;
 };
 
@@ -39,14 +43,16 @@ export const blocksConfig: Config<BlockProps, EmailRootProps> = {
     fields: {
       title: { type: "text", label: "Title" },
       subject: { type: "text", label: "Subject" },
+      background: paletteColorField("Page background"),
+      contentWidth: { type: "number", label: "Content width (px)", min: LIMITS.contentWidth.min, max: LIMITS.contentWidth.max },
     },
     // Draws the canvas inside the same frame as the sent email.
-    render: ({ children, style }) => createElement(EmailFrame, { style: resolveStyle(style) }, children),
+    render: ({ children, ...page }) => createElement(EmailFrame, { page: resolvePage(page) }, children),
   },
   components: {
-    Header,
+    Title,
     Navigation,
-    HeroImage,
+    Image: ImageBlock,
     Heading,
     BodyCopy,
     Quote,

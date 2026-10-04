@@ -8,11 +8,33 @@ const usePuck = createUsePuck<typeof blocksConfig>();
 
 // Pick a color from the palette. A color that was removed from the palette
 // stays selected (so nothing changes by surprise) and is marked as such.
-export function ColorChoice({ value, palette, onChange }: { value: string; palette: string[]; onChange: (c: string) => void }) {
-  const inPalette = palette.includes(value);
+// allowNone adds a "None" swatch, saved as "" (transparent).
+export function ColorChoice({
+  value,
+  palette,
+  onChange,
+  allowNone = false,
+}: {
+  value: string;
+  palette: string[];
+  onChange: (c: string) => void;
+  allowNone?: boolean;
+}) {
+  const isNone = allowNone && !value;
+  const inPalette = isNone || palette.includes(value);
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-wrap gap-1">
+        {allowNone && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            aria-label="None (transparent)"
+            aria-pressed={isNone}
+            title="None (transparent)"
+            className={`h-6 w-6 rounded border border-zinc-300 bg-[linear-gradient(135deg,transparent_45%,#ef4444_45%,#ef4444_55%,transparent_55%)] ${isNone ? "ring-2 ring-blue-500 ring-offset-1" : ""}`}
+          />
+        )}
         {[...(inPalette ? [] : [value]), ...palette].map((c) => (
           <button
             key={c}
@@ -31,13 +53,23 @@ export function ColorChoice({ value, palette, onChange }: { value: string; palet
 }
 
 // A block's color field in the right sidebar, showing the Style tab's palette.
-export function PaletteField({ label, value, onChange }: { label?: string; value: string; onChange: (c: string) => void }) {
+export function PaletteField({
+  label,
+  value,
+  onChange,
+  allowNone,
+}: {
+  label?: string;
+  value: string;
+  onChange: (c: string) => void;
+  allowNone?: boolean;
+}) {
   // Select the raw saved style (a stable reference), then resolve it here.
   const rawStyle = usePuck((s) => s.appState.data.root.props?.style);
   const { palette } = resolveStyle(rawStyle);
   return (
     <FieldLabel label={label ?? "Color"} el="div">
-      <ColorChoice value={value} palette={palette} onChange={onChange} />
+      <ColorChoice value={value} palette={palette} onChange={onChange} allowNone={allowNone} />
     </FieldLabel>
   );
 }

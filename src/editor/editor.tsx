@@ -4,14 +4,14 @@ import { useMemo, useState } from "react";
 import { Puck, type Plugin } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
 import type { EmailData } from "@/email/render";
-import { defaultStyle, resolveStyle } from "@/email/theme";
+import { defaultPage, defaultStyle, resolveStyle } from "@/email/theme";
 import { editorConfig } from "./puck-config";
 import { SendPanel } from "./send-panel";
 import { StylePanel } from "./style-panel";
 
 const emptyEmail: EmailData = {
   content: [],
-  root: { props: { title: "", subject: "", style: defaultStyle } },
+  root: { props: { title: "", subject: "", ...defaultPage, style: defaultStyle } },
 };
 
 // Defined once, outside the component: Puck rebuilds its internal state

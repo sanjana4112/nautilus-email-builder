@@ -3,7 +3,7 @@ import type { ComponentType } from "react";
 import { Body, Html, render } from "@react-email/components";
 import { blocksConfig, type BlockProps, type EmailRootProps } from "@/blocks";
 import { EmailFrame } from "./frame";
-import { resolveStyle } from "./theme";
+import { resolvePage, resolveStyle } from "./theme";
 
 export type EmailData = Data<BlockProps, EmailRootProps>;
 
@@ -15,6 +15,7 @@ type BlockRender = ComponentType<Record<string, unknown> & { puck: PuckContext }
 // render on the server.
 export async function renderEmailHtml(data: EmailData): Promise<string> {
   const style = resolveStyle(data.root.props?.style);
+  const page = resolvePage(data.root.props);
 
   // The editor-only info Puck normally hands each block. Outside the editor
   // there is nothing to drag or drop into; metadata carries the Style tab.
@@ -27,8 +28,8 @@ export async function renderEmailHtml(data: EmailData): Promise<string> {
 
   return render(
     <Html lang="en">
-      <Body style={{ backgroundColor: style.background, margin: 0 }}>
-        <EmailFrame style={style}>
+      <Body style={{ backgroundColor: page.background, margin: 0 }}>
+        <EmailFrame page={page}>
           {data.content.map(({ type, props }) => {
             // Props come from the same saved block as `type`, so they always fit
             // this render; TypeScript can't link the two across 8 block types.

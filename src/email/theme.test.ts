@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultStyle, isHexColor, nextPaletteColor, resolveStyle, textCss } from "./theme";
+import { defaultPage, defaultStyle, isHexColor, nextPaletteColor, resolvePage, resolveStyle, textCss } from "./theme";
 
 describe("resolveStyle", () => {
   it("returns the defaults when nothing is saved", () => {
@@ -22,16 +22,6 @@ describe("resolveStyle", () => {
     expect(resolveStyle({ palette: many }).palette).toHaveLength(15);
   });
 
-  it("ignores a bad background color", () => {
-    expect(resolveStyle({ background: "red; display:none" }).background).toBe("#ffffff");
-  });
-
-  it("keeps content width between 320 and 800px", () => {
-    expect(resolveStyle({ contentWidth: 100 }).contentWidth).toBe(320);
-    expect(resolveStyle({ contentWidth: 5000 }).contentWidth).toBe(800);
-    expect(resolveStyle({ contentWidth: "wide" }).contentWidth).toBe(600);
-  });
-
   it("keeps font sizes between 8 and 72px", () => {
     const { text } = resolveStyle({ text: { title: { size: 5000 }, caption: { size: 1 } } });
     expect(text.title.size).toBe(72);
@@ -51,6 +41,23 @@ describe("resolveStyle", () => {
     const { text } = resolveStyle({ text: { heading1: { bold: false } } });
     expect(text.heading1).toEqual({ ...defaultStyle.text.heading1, bold: false });
     expect(text.caption).toEqual(defaultStyle.text.caption);
+  });
+});
+
+describe("resolvePage", () => {
+  it("defaults to a white page with content filling the 600px email", () => {
+    expect(resolvePage(undefined)).toEqual(defaultPage);
+    expect(defaultPage).toEqual({ background: "#ffffff", contentWidth: 600 });
+  });
+
+  it("ignores a bad background color", () => {
+    expect(resolvePage({ background: "red; display:none" }).background).toBe("#ffffff");
+  });
+
+  it("keeps content width between 320 and 600px", () => {
+    expect(resolvePage({ contentWidth: 100 }).contentWidth).toBe(320);
+    expect(resolvePage({ contentWidth: 5000 }).contentWidth).toBe(600);
+    expect(resolvePage({ contentWidth: "wide" }).contentWidth).toBe(600);
   });
 });
 

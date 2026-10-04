@@ -17,8 +17,8 @@ import {
 
 const usePuck = createUsePuck<typeof blocksConfig>();
 
-// The "Style" tab in the left sidebar: email-wide palette, background,
-// width, and text styles. Saves into the design's page settings (root.props.style).
+// The "Style" tab in the left sidebar: the brand-wide palette and text
+// styles. Page-only settings (background, width) live under Page instead. Saves into the design's page settings (root.props.style).
 export function StylePanel() {
   const root = usePuck((s) => s.appState.data.root);
   const dispatch = usePuck((s) => s.dispatch);
@@ -69,19 +69,6 @@ export function StylePanel() {
           )}
         </div>
         <p className="text-xs text-zinc-500">Empty palette falls back to black and white.</p>
-      </Section>
-
-      <Section title="Layout">
-        <Row label="Background">
-          <ColorChoice value={style.background} palette={style.palette} onChange={(background) => save({ ...style, background })} />
-        </Row>
-        <Row label="Content width">
-          <NumberInput
-            value={style.contentWidth}
-            limits={LIMITS.contentWidth}
-            onChange={(contentWidth) => save({ ...style, contentWidth })}
-          />
-        </Row>
       </Section>
 
       <Section title="Text styles">

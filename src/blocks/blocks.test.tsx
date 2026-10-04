@@ -25,15 +25,15 @@ describe("every block", () => {
   );
 });
 
-describe("Header", () => {
+describe("Title", () => {
   it("shows the logo and brand name", async () => {
-    const out = await html(block("Header", { logoUrl: "https://cdn.example.com/logo.png", brandName: "Supper Club" }));
+    const out = await html(block("Title", { logoUrl: "https://cdn.example.com/logo.png", brandName: "Supper Club" }));
     expect(out).toContain('src="https://cdn.example.com/logo.png"');
     expect(out).toContain("Supper Club");
   });
 
   it("leaves out a logo that isn't https", async () => {
-    const out = await html(block("Header", { logoUrl: "http://example.com/logo.png" }));
+    const out = await html(block("Title", { logoUrl: "http://example.com/logo.png" }));
     expect(out).not.toContain("<img");
   });
 });
@@ -60,16 +60,16 @@ describe("Navigation", () => {
   });
 });
 
-describe("HeroImage", () => {
+describe("Image", () => {
   it("renders a linked image", async () => {
     const out = await html(
-      block("HeroImage", { imageUrl: "https://cdn.example.com/hero.jpg", alt: "Dinner", linkUrl: "https://example.com" }),
+      block("Image", { imageUrl: "https://cdn.example.com/hero.jpg", alt: "Dinner", linkUrl: "https://example.com" }),
     );
     expect(out).toMatch(/<a[^>]*href="https:\/\/example.com"[^>]*>\s*<img[^>]*alt="Dinner"/);
   });
 
   it("leaves the image out of the email when the URL is missing", async () => {
-    const out = await html(block("HeroImage", { imageUrl: "" }));
+    const out = await html(block("Image", { imageUrl: "" }));
     expect(out).not.toContain("<img");
     expect(out).not.toContain("Add an https image URL");
   });
